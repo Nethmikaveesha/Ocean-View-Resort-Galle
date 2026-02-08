@@ -1,37 +1,55 @@
 package com.oceanview.backend.controller;
 
-import com.oceanview.backend.model.Reservation;
-import com.oceanview.backend.repository.ReservationRepository;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
-import jakarta.servlet.http.HttpServletResponse;
+import com.oceanview.model.Reservation;
+import com.oceanview.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+
 @RestController
-@RequestMapping("/api/bill")
+@RequestMapping("/api/bills")
 public class BillController {
 
     @Autowired
-    private ReservationRepository repo;
+    private ReservationRepository reservationRepository;
 
-    @GetMapping("/{id}")
-    public void generateBill(@PathVariable String id,
-                             HttpServletResponse response) throws Exception {
+    @GetMapping("/{reservationNumber}")
+    public ResponseEntity<byte[]> generateBill(@PathVariable String reservationNumber) {
+        try {
+            Reservation reservation = reservationRepository.findById(reservationNumber)
+                    .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-        Reservation r = repo.findById(id).orElseThrow();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Document document = new Document();
+            PdfWriter.getInstance(document, out);
 
-        response.setContentType("application/pdf");
+            document.open();
+            document.add(new Paragraph("Ocean View Resort - Galle"));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Reservation Number: " + reservation.getReservationNumber()));
+            document.add(new Paragraph("Guest Name: " + reservation.getGuestName()));
+            document.add(new Paragraph("Room Type: " + reservation.getRoom().getRoomType()));
+            document.add(new Paragraph("Check-in Date: " + reservation.getCheckInDate()));
+            document.add(new Paragraph("Check-out Date: " + reservation.getCheckOutDate()));
+            document.add(new Paragraph("Time: " + reservation.getTime()));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Total Bill: LKR " + reservation.getTotalBill()));
+            document.close();
 
-        Document document = new Document();
-        PdfWriter.getInstance(document, response.getOutputStream());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bill.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(out.toByteArray());
 
-        document.open();
-        document.add(new Paragraph("Ocean View Resort"));
-        document.add(new Paragraph("Reservation Number: " + r.getReservationNumber()));
-        document.add(new Paragraph("Guest Name: " + r.getGuestName()));
-        document.add(new Paragraph("Total Bill: Rs. " + r.getTotalBill()));
-        document.close();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
