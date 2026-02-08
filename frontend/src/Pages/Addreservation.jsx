@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import api from "./services/api"; 
+import { addReservation, checkRoomAvailability } from "./services/api";
+
+// Room rates
 const ROOM_RATES = {
   Single: 10000,
   Double: 15000,
   Deluxe: 25000,
 };
 
+// Generate random reservation number
+const generateReservationNumber = () =>
+  "RES" + Math.floor(Math.random() * 1000000);
+
 export default function AddReservation() {
   const [bill, setBill] = useState(0);
+  const [roomAvailable, setRoomAvailable] = useState(true);
+  const [reservationNumber, setReservationNumber] = useState(
+    generateReservationNumber()
+  );
 
   const formik = useFormik({
     initialValues: {
@@ -17,103 +27,106 @@ export default function AddReservation() {
       address: "",
       contactNumber: "",
       roomType: "Single",
-      checkIn: "",
-      checkOut: "",
+      checkInDate: "",
+      checkOutDate: "",
     },
     validationSchema: Yup.object({
-      guestName: Yup.string().required("Guest name is required"),
-      address: Yup.string().required("Address is required"),
-      contactNumber: Yup.string()
-        .matches(/^\d+$/, "Must be a valid number")
-        .required("Contact number is required"),
-      roomType: Yup.string().oneOf(["Single", "Double", "Deluxe"]).required(),
-      checkIn: Yup.date()
-        .min(new Date().toISOString().split("T")[0], "Check-in cannot be in the past")
-        .required("Check-in date is required"),
-      checkOut: Yup.date()
-        .min(
-          Yup.ref("checkIn"),
-          "Check-out must be after check-in date"
-        )
-        .required("Check-out date is required"),
+      guestName: Yup.string().required("Required"),
+      address: Yup.string().required("Required"),
+      contactNumber: Yup.string().required("Required"),
+      roomType: Yup.string().required("Required"),
+      checkInDate: Yup.date()
+        .min(new Date(), "Check-in date cannot be in the past")
+        .required("Required"),
+      checkOutDate: Yup.date()
+        .min(Yup.ref("checkInDate"), "Check-out must be after check-in")
+        .required("Required"),
     }),
-    onSubmit: async (values, { resetForm }) => {
+    onSubmit: async (values) => {
       try {
-        // Call backend API to add reservation
-        const response = await api.post("/reservations", values);
-        alert(`Thank you! Your reservation is added.\nTotal Bill: LKR ${bill}`);
-        resetForm();
+        const data = { ...values, reservationNumber };
+        await addReservation(data);
+        alert(
+          `Reservation successful!\nReservation Number: ${reservationNumber}\nTotal Bill: LKR ${bill}`
+        );
+        // Reset form & bill
+        formik.resetForm();
         setBill(0);
-      } catch (error) {
-        console.error(error);
-        alert("Failed to add reservation. Please try again.");
+        setReservationNumber(generateReservationNumber());
+      } catch (err) {
+        alert("Error adding reservation: " + (err.message || err));
       }
     },
   });
 
-  // Calculate bill whenever dates or roomType changes
-  const calculateBill = (checkIn, checkOut, roomType) => {
-    if (!checkIn || !checkOut) return 0;
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
+  // Calculate bill whenever dates or room type change
+  useEffect(() => {
+    const { checkInDate, checkOutDate, roomType } = formik.values;
+    if (!checkInDate || !checkOutDate) {
+      setBill(0);
+      return;
+    }
+    const start = new Date(checkInDate);
+    const end = new Date(checkOutDate);
     const nights = (end - start) / (1000 * 60 * 60 * 24);
-    if (nights <= 0) return 0;
-    return nights * ROOM_RATES[roomType];
-  };
+    setBill(nights > 0 ? nights * ROOM_RATES[roomType] : 0);
+  }, [formik.values.checkInDate, formik.values.checkOutDate, formik.values.roomType]);
 
-  // Update bill on change
-  const handleRoomChange = (e) => {
-    formik.handleChange(e);
-    setBill(calculateBill(formik.values.checkIn, formik.values.checkOut, e.target.value));
-  };
+  // Check room availability whenever dates or room type change
+  useEffect(() => {
+    const { checkInDate, checkOutDate, roomType } = formik.values;
+    if (!checkInDate || !checkOutDate) return;
 
-  const handleCheckInChange = (e) => {
-    formik.handleChange(e);
-    setBill(calculateBill(e.target.value, formik.values.checkOut, formik.values.roomType));
-  };
-
-  const handleCheckOutChange = (e) => {
-    formik.handleChange(e);
-    setBill(calculateBill(formik.values.checkIn, e.target.value, formik.values.roomType));
-  };
+    const checkAvailability = async () => {
+      try {
+        const res = await checkRoomAvailability(roomType, checkInDate, checkOutDate);
+        setRoomAvailable(res.available);
+      } catch (err) {
+        setRoomAvailable(false);
+      }
+    };
+    checkAvailability();
+  }, [formik.values.checkInDate, formik.values.checkOutDate, formik.values.roomType]);
 
   return (
     <div className="p-8 max-w-xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Add Reservation</h2>
-
       <form onSubmit={formik.handleSubmit}>
         <input
+          type="text"
           name="guestName"
           placeholder="Guest Name"
           className="border p-2 w-full mb-2"
-          value={formik.values.guestName}
           onChange={formik.handleChange}
+          value={formik.values.guestName}
         />
-        {formik.errors.guestName && <div className="text-red-500">{formik.errors.guestName}</div>}
+        {formik.errors.guestName && <p className="text-red-500">{formik.errors.guestName}</p>}
 
         <input
+          type="text"
           name="address"
           placeholder="Address"
           className="border p-2 w-full mb-2"
-          value={formik.values.address}
           onChange={formik.handleChange}
+          value={formik.values.address}
         />
-        {formik.errors.address && <div className="text-red-500">{formik.errors.address}</div>}
+        {formik.errors.address && <p className="text-red-500">{formik.errors.address}</p>}
 
         <input
+          type="text"
           name="contactNumber"
           placeholder="Contact Number"
           className="border p-2 w-full mb-2"
-          value={formik.values.contactNumber}
           onChange={formik.handleChange}
+          value={formik.values.contactNumber}
         />
-        {formik.errors.contactNumber && <div className="text-red-500">{formik.errors.contactNumber}</div>}
+        {formik.errors.contactNumber && <p className="text-red-500">{formik.errors.contactNumber}</p>}
 
         <select
           name="roomType"
           className="border p-2 w-full mb-2"
+          onChange={formik.handleChange}
           value={formik.values.roomType}
-          onChange={handleRoomChange}
         >
           <option>Single</option>
           <option>Double</option>
@@ -123,32 +136,37 @@ export default function AddReservation() {
         <label className="block mt-2">Check-in Date</label>
         <input
           type="date"
-          name="checkIn"
+          name="checkInDate"
           min={new Date().toISOString().split("T")[0]}
           className="border p-2 w-full mb-2"
-          value={formik.values.checkIn}
-          onChange={handleCheckInChange}
+          onChange={formik.handleChange}
+          value={formik.values.checkInDate}
         />
-        {formik.errors.checkIn && <div className="text-red-500">{formik.errors.checkIn}</div>}
+        {formik.errors.checkInDate && <p className="text-red-500">{formik.errors.checkInDate}</p>}
 
         <label className="block mt-2">Check-out Date</label>
         <input
           type="date"
-          name="checkOut"
+          name="checkOutDate"
           className="border p-2 w-full mb-4"
-          value={formik.values.checkOut}
-          onChange={handleCheckOutChange}
+          onChange={formik.handleChange}
+          value={formik.values.checkOutDate}
         />
-        {formik.errors.checkOut && <div className="text-red-500">{formik.errors.checkOut}</div>}
+        {formik.errors.checkOutDate && <p className="text-red-500">{formik.errors.checkOutDate}</p>}
 
+        {!roomAvailable && <p className="text-red-600 mb-2">Room not available for selected dates!</p>}
+
+        {/* BILL UI */}
         <div className="bg-gray-100 p-4 rounded mb-4">
+          <p className="font-semibold">Reservation Number: {reservationNumber}</p>
           <p className="font-semibold">Total Bill</p>
           <p className="text-xl text-green-600">LKR {bill}</p>
         </div>
 
         <button
           type="submit"
-          className="bg-green-600 text-white px-6 py-2 rounded"
+          disabled={!roomAvailable}
+          className={`px-6 py-2 rounded text-white ${roomAvailable ? "bg-green-600" : "bg-gray-400 cursor-not-allowed"}`}
         >
           Add Reservation
         </button>

@@ -1,19 +1,17 @@
-import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
 
-// Protect routes for logged-in users
+// role = "admin" or "customer"
 export default function ProtectedRoute({ children, role }) {
-  const { user } = useContext(AuthContext);
+  const userRole = localStorage.getItem("userRole");
 
-  if (!user) {
+  if (!userRole) {
     // Not logged in
     return <Navigate to="/login" />;
   }
 
-  if (role && user.role !== role) {
-    // Logged in but role mismatch
-    return <Navigate to="/" />;
+  if (role && userRole !== role) {
+    // Role mismatch
+    return <Navigate to="/login" />;
   }
 
   return children;
