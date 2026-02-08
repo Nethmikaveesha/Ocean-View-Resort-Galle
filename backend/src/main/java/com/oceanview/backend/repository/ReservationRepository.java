@@ -1,4 +1,8 @@
 package com.oceanview.backend.repository;
 
-public interface ReservationRepository {
+import com.oceanview.backend.model.Reservation;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+public interface ReservationRepository
+        extends MongoRepository<Reservation, String> {
 }
