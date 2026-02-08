@@ -5,16 +5,14 @@ export default function Navbar() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    alert("Logged out successfully");
+  const logout = () => {
+    localStorage.clear();
     navigate("/login");
   };
 
   return (
     <nav className="bg-blue-600 text-white px-6 py-4 flex justify-between">
-      <h1 className="font-bold text-lg">Ocean View Resort</h1>
+      <h1 className="font-bold">Ocean View Resort</h1>
 
       <div className="space-x-4">
         <Link to="/">Home</Link>
@@ -38,7 +36,7 @@ export default function Navbar() {
 
         {token && (
           <button
-            onClick={handleLogout}
+            onClick={logout}
             className="bg-red-500 px-3 py-1 rounded"
           >
             Logout

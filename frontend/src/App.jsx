@@ -14,13 +14,16 @@ export default function App() {
   return (
     <Router>
       <Navbar />
+
       <Routes>
+        {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/help" element={<Help />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Customer */}
         <Route
           path="/customer"
           element={
@@ -30,6 +33,7 @@ export default function App() {
           }
         />
 
+        {/* Admin */}
         <Route
           path="/admin"
           element={

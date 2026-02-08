@@ -1,65 +1,77 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "./services/api";
+import axios from "./services/api";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
     try {
-      const response = await api.post("/auth/login", {
-        email,
+      // Call backend API
+      const response = await axios.post("/auth/login", {
+        username,
         password,
       });
 
-      // ✅ SAVE TOKEN (THIS IS THE IMPORTANT PART)
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", response.data.role);
+      const { token, role } = response.data;
 
-      alert("Login successful");
+      // Save JWT token and role to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
 
-      // ✅ Redirect by role
-      if (response.data.role === "ADMIN") {
-        navigate("/admin");
+      // Redirect based on role
+      if (role === "ADMIN") {
+        navigate("/admin-dashboard");
       } else {
-        navigate("/customer");
+        navigate("/customer-dashboard");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Invalid email or password");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.message || "Login failed. Check credentials."
+      );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="max-w-md mx-auto mt-20 p-6 border rounded shadow">
+      <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
 
+      {error && (
+        <p className="text-red-600 mb-2 text-center font-semibold">{error}</p>
+      )}
+
+      <form onSubmit={handleLogin}>
         <input
-          type="email"
-          placeholder="Email"
-          className="border p-2 w-full mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="border p-2 w-full mb-4 rounded"
+          required
         />
-
         <input
           type="password"
           placeholder="Password"
-          className="border p-2 w-full mb-6"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="border p-2 w-full mb-4 rounded"
+          required
         />
 
         <button
-          onClick={handleLogin}
-          className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
           Login
         </button>
-      </div>
+      </form>
     </div>
   );
 }
