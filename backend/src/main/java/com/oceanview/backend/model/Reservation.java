@@ -1,35 +1,43 @@
 package com.oceanview.backend.model;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDate;
 
 @Document(collection = "reservations")
-@Getter
-@Setter
 public class Reservation {
-
     @Id
-    private String reservationNumber; // auto-generated
-
+    private String reservationNumber; // Primary key
     private String guestName;
-
     private String address;
-
     private String contactNumber;
-
-    private LocalDate checkInDate;
-
-    private LocalDate checkOutDate;
-
-    private String time; // AM / PM
-
+    private String roomType; // Single, Double, Deluxe
+    private LocalDate checkIn;
+    private LocalDate checkOut;
     private double totalBill;
 
-    @DBRef
-    private Room room; // MongoDB reference
+    // Getters & Setters
+    public String getReservationNumber() { return reservationNumber; }
+    public void setReservationNumber(String reservationNumber) { this.reservationNumber = reservationNumber; }
+
+    public String getGuestName() { return guestName; }
+    public void setGuestName(String guestName) { this.guestName = guestName; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getContactNumber() { return contactNumber; }
+    public void setContactNumber(String contactNumber) { this.contactNumber = contactNumber; }
+
+    public String getRoomType() { return roomType; }
+    public void setRoomType(String roomType) { this.roomType = roomType; }
+
+    public LocalDate getCheckIn() { return checkIn; }
+    public void setCheckIn(LocalDate checkIn) { this.checkIn = checkIn; }
+
+    public LocalDate getCheckOut() { return checkOut; }
+    public void setCheckOut(LocalDate checkOut) { this.checkOut = checkOut; }
+
+    public double getTotalBill() { return totalBill; }
+    public void setTotalBill(double totalBill) { this.totalBill = totalBill; }
 }

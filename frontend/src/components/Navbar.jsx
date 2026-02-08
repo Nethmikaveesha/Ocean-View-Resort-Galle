@@ -18,12 +18,10 @@ export default function Navbar() {
       </div>
 
       <div className="space-x-4">
-        {/* Always visible links */}
         <Link to="/">Home</Link>
         <Link to="/about">About</Link>
         <Link to="/help">Help</Link>
 
-        {/* If user is not logged in */}
         {!user && (
           <>
             <Link to="/login">Login</Link>
@@ -31,7 +29,6 @@ export default function Navbar() {
           </>
         )}
 
-        {/* If user is logged in */}
         {user && user.role === "customer" && (
           <>
             <Link to="/customer-dashboard">Dashboard</Link>

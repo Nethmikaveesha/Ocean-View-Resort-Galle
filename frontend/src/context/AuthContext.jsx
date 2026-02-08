@@ -1,15 +1,11 @@
-import { createContext, useState, useEffect } from "react";
+import React, { createContext, useState } from "react";
 
+// Create AuthContext
 export const AuthContext = createContext();
 
+// Provide context to the app
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-
-  // Check localStorage for login info
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setUser(storedUser);
-  }, []);
 
   const login = (userData) => {
     setUser(userData);
@@ -21,11 +17,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
+  // Load user from localStorage on refresh
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 };
-
-export default AuthContext;

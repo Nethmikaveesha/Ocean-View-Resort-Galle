@@ -23,9 +23,11 @@ public class BillController {
     @GetMapping("/{reservationNumber}")
     public ResponseEntity<byte[]> generateBill(@PathVariable String reservationNumber) {
         try {
+            // Find the reservation
             Reservation reservation = reservationRepository.findById(reservationNumber)
                     .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
+            // Create PDF
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             Document document = new Document();
             PdfWriter.getInstance(document, out);
@@ -35,12 +37,14 @@ public class BillController {
             document.add(new Paragraph(" "));
             document.add(new Paragraph("Reservation Number: " + reservation.getReservationNumber()));
             document.add(new Paragraph("Guest Name: " + reservation.getGuestName()));
-            document.add(new Paragraph("Room Type: " + reservation.getRoom().getRoomType()));
-            document.add(new Paragraph("Check-in Date: " + reservation.getCheckInDate()));
-            document.add(new Paragraph("Check-out Date: " + reservation.getCheckOutDate()));
-            document.add(new Paragraph("Time: " + reservation.getTime()));
+            document.add(new Paragraph("Room Type: " + reservation.getRoomType())); // fixed
+            document.add(new Paragraph("Check-in Date: " + reservation.getCheckIn())); // fixed
+            document.add(new Paragraph("Check-out Date: " + reservation.getCheckOut())); // fixed
             document.add(new Paragraph(" "));
+
+            // If you want time, you can add system time or check-in time if stored
             document.add(new Paragraph("Total Bill: LKR " + reservation.getTotalBill()));
+
             document.close();
 
             return ResponseEntity.ok()
@@ -49,6 +53,7 @@ public class BillController {
                     .body(out.toByteArray());
 
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
