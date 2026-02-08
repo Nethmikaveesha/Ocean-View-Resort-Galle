@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// src/App.jsx
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Help from "./pages/Help";
@@ -9,36 +9,56 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AddReservation from "./pages/AddReservation";
+import ViewReservation from "./pages/ViewReservation";
 
-export default function App() {
+// Protected route component
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" />;
+};
+
+function App() {
   return (
     <Router>
       <Navbar />
-
       <Routes>
-        {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/help" element={<Help />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Customer */}
+        {/* Protected Routes */}
         <Route
-          path="/customer"
+          path="/customer-dashboard"
           element={
-            <ProtectedRoute role="CUSTOMER">
+            <ProtectedRoute>
               <CustomerDashboard />
             </ProtectedRoute>
           }
         />
-
-        {/* Admin */}
         <Route
-          path="/admin"
+          path="/admin-dashboard"
           element={
-            <ProtectedRoute role="ADMIN">
+            <ProtectedRoute>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-reservation"
+          element={
+            <ProtectedRoute>
+              <AddReservation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/view-reservation"
+          element={
+            <ProtectedRoute>
+              <ViewReservation />
             </ProtectedRoute>
           }
         />
@@ -46,3 +66,5 @@ export default function App() {
     </Router>
   );
 }
+
+export default App;

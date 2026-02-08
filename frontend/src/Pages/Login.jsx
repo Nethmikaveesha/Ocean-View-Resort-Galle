@@ -1,73 +1,58 @@
-import { useState } from "react";
+// src/pages/Login.jsx
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "./services/api";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import api from "./services/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      // Call backend API
-      const response = await axios.post("/auth/login", {
-        username,
-        password,
-      });
-
-      const { token, role } = response.data;
-
-      // Save JWT token and role to localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-
-      // Redirect based on role
-      if (role === "ADMIN") {
-        navigate("/admin-dashboard");
-      } else {
+  const formik = useFormik({
+    initialValues: { username: "", password: "" },
+    validationSchema: Yup.object({
+      username: Yup.string().required("Username is required"),
+      password: Yup.string().required("Password is required"),
+    }),
+    onSubmit: async (values) => {
+      try {
+        const response = await api.post("/auth/login", values);
+        localStorage.setItem("token", response.data.token);
         navigate("/customer-dashboard");
+      } catch (err) {
+        alert("Login failed! Check credentials.");
       }
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data?.message || "Login failed. Check credentials."
-      );
-    }
-  };
+    },
+  });
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 border rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-
-      {error && (
-        <p className="text-red-600 mb-2 text-center font-semibold">{error}</p>
-      )}
-
-      <form onSubmit={handleLogin}>
+    <div className="p-8 max-w-md mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Login</h2>
+      <form onSubmit={formik.handleSubmit} className="space-y-3">
         <input
-          type="text"
+          name="username"
           placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="border p-2 w-full mb-4 rounded"
-          required
+          className="border p-2 w-full"
+          value={formik.values.username}
+          onChange={formik.handleChange}
         />
+        {formik.errors.username && (
+          <div className="text-red-500">{formik.errors.username}</div>
+        )}
         <input
           type="password"
+          name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 w-full mb-4 rounded"
-          required
+          className="border p-2 w-full"
+          value={formik.values.password}
+          onChange={formik.handleChange}
         />
-
+        {formik.errors.password && (
+          <div className="text-red-500">{formik.errors.password}</div>
+        )}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          className="bg-green-600 text-white px-4 py-2 rounded"
         >
           Login
         </button>
