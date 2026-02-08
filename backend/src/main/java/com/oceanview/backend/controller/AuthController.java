@@ -1,12 +1,11 @@
 package com.oceanview.backend.controller;
 
 import com.oceanview.backend.config.JwtUtil;
-import com.oceanview.backend.model.User;
+import com.oceanview.backend.model.User; // your model
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,14 +21,15 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody com.oceanview.backend.model.User loginUser) {
+    public Map<String, String> login(@RequestBody User loginUser) {
         // Authenticate user
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginUser.getUsername(), loginUser.getPassword())
         );
 
-        // Create UserDetails for JWT
-        UserDetails userDetails = User.withUsername(loginUser.getUsername())
+        // Create UserDetails for JWT using fully qualified class name
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .withUsername(loginUser.getUsername())
                 .password(loginUser.getPassword())
                 .authorities("ROLE_USER") // Set proper roles here
                 .build();
