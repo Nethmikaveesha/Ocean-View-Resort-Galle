@@ -1,7 +1,6 @@
 package com.oceanview.backend.service;
 
 import com.oceanview.backend.model.Reservation;
-import com.oceanview.backend.model.Room;
 import com.oceanview.backend.repository.ReservationRepository;
 import com.oceanview.backend.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
