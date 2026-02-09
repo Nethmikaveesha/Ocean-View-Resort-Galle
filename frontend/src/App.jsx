@@ -7,14 +7,14 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Pages
 import Home from "./pages/Home";
-import About from "./pages/About";
-import Help from "./pages/Help";
+import About from "./Pages/About";
+import Help from "./Pages/Help";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddReservation from "./pages/AddReservation";
-import ViewReservation from "./pages/ViewReservation";
+import ViewReservation from "./Pages/ViewReservation";
 
 function App() {
   return (
