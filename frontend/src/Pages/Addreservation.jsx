@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { addReservation, checkRoomAvailability } from "./services/api";
+import { addReservation, checkRoomAvailability } from "../Services/api";
 
 // Room rates
 const ROOM_RATES = {

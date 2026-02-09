@@ -2,7 +2,10 @@ package com.oceanview.backend.controller;
 
 import com.oceanview.backend.config.JwtUtil;
 import com.oceanview.backend.model.User; // your model
+import com.oceanview.backend.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +25,9 @@ private AuthenticationManager authenticationManager;
     @Autowired
     private JwtUtil jwtUtil;
 
+        @Autowired
+        private AuthService authService;
+
     @PostMapping("/login")
     public Map<String, String> login(@RequestBody User loginUser) {
         // Authenticate user
@@ -40,5 +46,17 @@ private AuthenticationManager authenticationManager;
         String token = jwtUtil.generateToken(userDetails);
 
         return Map.of("token", token);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            User created = authService.register(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Registration failed"));
+        }
     }
 }

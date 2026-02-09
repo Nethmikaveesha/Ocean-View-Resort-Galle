@@ -1,4 +1,4 @@
-import api from "./services/api";
+import api from "./api";
 
 export const addReservation = (reservation) => {
   return api.post("/reservations", reservation);

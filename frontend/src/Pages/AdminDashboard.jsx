@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
-import api from "./services/api";
+import api from "../Services/api";
 
 export default function AdminDashboard() {
   const [rooms, setRooms] = useState([]);

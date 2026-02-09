@@ -1,6 +1,6 @@
 // src/pages/CustomerDashboard.jsx
 import React, { useEffect, useState } from "react";
-import api from "./services/api";
+import api from "../Services/api";
 
 export default function CustomerDashboard() {
   const [reservations, setReservations] = useState([]);

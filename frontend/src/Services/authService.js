@@ -1,4 +1,4 @@
-import api from "./services/api";
+import api from "./api";
 
 export const loginUser = (loginData) => {
   return api.post("/auth/login", loginData);
@@ -14,4 +14,8 @@ export const logoutUser = () => {
 
 export const checkAuth = () => {
   return api.get("/auth/check");
+};
+
+export const getUser = () => {
+  return api.get("/auth/user");
 };
