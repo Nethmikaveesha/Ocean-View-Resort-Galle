@@ -1,27 +1,78 @@
+
 package com.oceanview.backend.controller;
 
 import com.oceanview.backend.model.Room;
 import com.oceanview.backend.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/rooms")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5173") // allow Vite frontend
 public class RoomController {
 
     @Autowired
     private RoomService service;
 
+    // ✅ Add new room
     @PostMapping
-    public Room addRoom(@RequestBody Room room) {
-        return service.addRoom(room);
+    public ResponseEntity<Room> addRoom(@RequestBody Room room) {
+        Room savedRoom = service.addRoom(room);
+        return ResponseEntity.ok(savedRoom);
     }
 
+    // ✅ Get all rooms
+    @GetMapping
+    public ResponseEntity<List<Room>> getAllRooms() {
+        return ResponseEntity.ok(service.getAllRooms());
+    }
+
+    // ✅ Get available rooms
     @GetMapping("/available")
-    public List<Room> availableRooms() {
-        return service.availableRooms();
+    public ResponseEntity<List<Room>> getAvailableRooms() {
+        return ResponseEntity.ok(service.availableRooms());
+    }
+
+    // ✅ Get room by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getRoomById(@PathVariable String id) {
+        Optional<Room> room = service.getRoomById(id);
+
+        if (room.isPresent()) {
+            return ResponseEntity.ok(room.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ✅ Update room
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateRoom(@PathVariable String id,
+                                        @RequestBody Room updatedRoom) {
+        Optional<Room> roomOptional = service.getRoomById(id);
+
+        if (roomOptional.isPresent()) {
+            Room room = roomOptional.get();
+            room.setRoomNumber(updatedRoom.getRoomNumber());
+            room.setType(updatedRoom.getType());
+            room.setPrice(updatedRoom.getPrice());
+            room.setAvailable(updatedRoom.isAvailable());
+
+            Room saved = service.addRoom(room);
+            return ResponseEntity.ok(saved);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ✅ Delete room
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRoom(@PathVariable String id) {
+        service.deleteRoom(id);
+        return ResponseEntity.ok("Room deleted successfully");
     }
 }

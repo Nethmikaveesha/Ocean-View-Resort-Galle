@@ -1,9 +1,10 @@
 package com.oceanview.backend.controller;
 
 import com.oceanview.backend.model.Reservation;
-import com.oceanview.backend.model.Reservation;
 import com.oceanview.backend.service.ReservationService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -14,6 +15,11 @@ public class ReservationController {
 
     public ReservationController(ReservationService service) {
         this.service = service;
+    }
+
+    @GetMapping
+    public List<Reservation> getAllReservations() {
+        return service.getAllReservations();
     }
 
     @PostMapping

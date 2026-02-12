@@ -6,7 +6,7 @@ export default function AdminDashboard() {
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [newRoom, setNewRoom] = useState({ type: "", rate: "", image: "" });
+  const [newRoom, setNewRoom] = useState({ type: "", rate: "" });
 
   // Fetch all data from backend
   useEffect(() => {
@@ -15,35 +15,54 @@ export default function AdminDashboard() {
     fetchCustomers();
   }, []);
 
+  // Fetch all rooms
   const fetchRooms = async () => {
-    const res = await api.get("/rooms");
-    setRooms(res.data);
+    try {
+      const res = await api.get("/rooms"); // or "/rooms/available" if you want only available
+      setRooms(res.data);
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+    }
   };
 
+  // Fetch reservations
   const fetchReservations = async () => {
-    const res = await api.get("/reservations");
-    setReservations(res.data);
+    try {
+      const res = await api.get("/reservations");
+      setReservations(res.data);
+    } catch (err) {
+      console.error("Error fetching reservations:", err);
+    }
   };
 
+  // Fetch customers
   const fetchCustomers = async () => {
-    const res = await api.get("/customers");
-    setCustomers(res.data);
+    try {
+      const res = await api.get("/customers");
+      setCustomers(res.data);
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+    }
   };
 
+  // Add new room
   const handleAddRoom = async () => {
-    const formData = new FormData();
-    formData.append("type", newRoom.type);
-    formData.append("rate", newRoom.rate);
-    formData.append("image", newRoom.image);
+    if (!newRoom.type || !newRoom.rate) {
+      alert("Please fill in room type and rate.");
+      return;
+    }
 
     try {
-      await api.post("/rooms", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await api.post("/rooms", {
+        type: newRoom.type,
+        price: parseFloat(newRoom.rate),
+        available: true,
       });
       alert("Room added successfully!");
-      setNewRoom({ type: "", rate: "", image: "" });
-      fetchRooms();
+      setNewRoom({ type: "", rate: "" });
+      fetchRooms(); // refresh list immediately
     } catch (err) {
+      console.error("Error adding room:", err);
       alert("Failed to add room.");
     }
   };
@@ -68,11 +87,6 @@ export default function AdminDashboard() {
           onChange={(e) => setNewRoom({ ...newRoom, rate: e.target.value })}
           className="border p-2 mr-2"
         />
-        <input
-          type="file"
-          onChange={(e) => setNewRoom({ ...newRoom, image: e.target.files[0] })}
-          className="border p-2 mr-2"
-        />
         <button
           onClick={handleAddRoom}
           className="bg-green-600 text-white px-4 py-2 rounded"
@@ -87,7 +101,7 @@ export default function AdminDashboard() {
         <ul className="border p-2 rounded">
           {rooms.map((room) => (
             <li key={room.id}>
-              {room.type} - LKR {room.rate}
+              {room.type} - LKR {room.price} {room.available ? "(Available)" : "(Booked)"}
             </li>
           ))}
         </ul>
@@ -98,7 +112,7 @@ export default function AdminDashboard() {
         <h3 className="font-semibold mb-2">Reservations</h3>
         <ul className="border p-2 rounded">
           {reservations.map((resv) => (
-            <li key={resv.reservationNumber}>
+            <li key={resv.id}>
               {resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.bill}
             </li>
           ))}
