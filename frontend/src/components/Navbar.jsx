@@ -19,15 +19,11 @@ export default function Navbar() {
 
       <div className="space-x-4">
         <Link to="/">Home</Link>
-        <Link to="/check">Check Availability</Link>
         <Link to="/about">About</Link>
         <Link to="/help">Help</Link>
 
         {!user && !localStorage.getItem("userRole") && (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
+          <Link to="/login">Login</Link>
         )}
 
         {(user?.role === "customer" || localStorage.getItem("userRole") === "customer") && (
@@ -45,15 +41,7 @@ export default function Navbar() {
         )}
 
         {(user?.role === "admin" || localStorage.getItem("userRole") === "admin") && (
-          <>
-            <Link to="/admin-dashboard">Admin Dashboard</Link>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 px-3 py-1 rounded"
-            >
-              Logout
-            </button>
-          </>
+          <Link to="/admin-dashboard">Admin Dashboard</Link>
         )}
       </div>
     </nav>

@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getRooms, getReservations, getCustomers, addRoom, deleteRoom, addReservation } from "../Services/api";
+import { AuthContext } from "../context/AuthContext";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const { logout } = React.useContext(AuthContext);
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -161,7 +165,7 @@ export default function AdminDashboard() {
       </section>
 
       {/* Customers */}
-      <section>
+      <section className="mb-8">
         <h3 className="font-semibold mb-2">Customers</h3>
         <ul className="border rounded divide-y max-h-48 overflow-y-auto">
           {customers.map((cust) => (
@@ -170,6 +174,19 @@ export default function AdminDashboard() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Admin Logout - only at bottom of dashboard */}
+      <section className="pt-8 border-t mt-8">
+        <button
+          onClick={() => {
+            logout();
+            navigate("/login");
+          }}
+          className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+        >
+          Logout
+        </button>
       </section>
     </div>
   );
