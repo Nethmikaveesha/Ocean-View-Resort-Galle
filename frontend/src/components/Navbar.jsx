@@ -23,7 +23,7 @@ export default function Navbar() {
         <Link to="/help">Help</Link>
 
         {!user && !localStorage.getItem("userRole") && (
-          <Link to="/login">Login</Link>
+          <Link to="/login">Admin Login</Link>
         )}
 
         {(user?.role === "customer" || localStorage.getItem("userRole") === "customer") && (

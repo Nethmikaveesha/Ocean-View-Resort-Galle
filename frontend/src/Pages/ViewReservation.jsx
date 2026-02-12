@@ -45,11 +45,22 @@ export default function ViewReservation() {
   };
 
   const handleUpdate = async () => {
+    const resNumber = editing;
     try {
-      await updateReservation(editing, form);
-      alert("Reservation updated successfully.");
+      await updateReservation(resNumber, form);
       setEditing(null);
-      fetchReservations();
+      await fetchReservations();
+      try {
+        const blob = await getBill(resNumber);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `bill-${resNumber}-updated.pdf`;
+        a.click();
+        alert("Reservation updated. Bill recalculated and downloaded.");
+      } catch (_) {
+        alert("Reservation updated. You can download the updated bill using the button below.");
+      }
     } catch (err) {
       alert("Failed to update: " + (err?.message || "Try again."));
     }
@@ -123,8 +134,8 @@ export default function ViewReservation() {
                   </select>
                   <input type="date" value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value })} className="border p-2 w-full rounded" />
                   <input type="date" value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} className="border p-2 w-full rounded" />
-                  <div className="flex gap-2">
-                    <button onClick={handleUpdate} className="bg-green-600 text-white px-4 py-1 rounded">Save</button>
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={handleUpdate} className="bg-green-600 text-white px-4 py-1 rounded">Save (Bill will be recalculated)</button>
                     <button onClick={() => setEditing(null)} className="bg-gray-500 text-white px-4 py-1 rounded">Cancel</button>
                   </div>
                 </div>
@@ -135,11 +146,11 @@ export default function ViewReservation() {
                   <p><strong>Room Type:</strong> {res.roomType}</p>
                   <p><strong>Check-in:</strong> {res.checkIn || res.checkInDate} {res.checkInTime && `(${res.checkInTime})`}</p>
                   <p><strong>Check-out:</strong> {res.checkOut || res.checkOutDate} {res.checkOutTime && `(${res.checkOutTime})`}</p>
-                  <p><strong>Total Bill:</strong> LKR {res.totalBill}</p>
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={() => handleDownloadBill(res.reservationNumber)} className="text-blue-600 underline">Download Bill (PDF)</button>
-                    <button onClick={() => handleEdit(res)} className="text-amber-600 underline">Update</button>
-                    <button onClick={() => handleDelete(res.reservationNumber)} className="text-red-600 underline">Delete</button>
+                  <p><strong>Total Bill:</strong> LKR {res.totalBill?.toLocaleString()}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button onClick={() => handleDownloadBill(res.reservationNumber)} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Print / Download Bill</button>
+                    <button onClick={() => handleEdit(res)} className="bg-amber-500 text-white px-3 py-1 rounded text-sm">Edit</button>
+                    <button onClick={() => handleDelete(res.reservationNumber)} className="bg-red-600 text-white px-3 py-1 rounded text-sm">Delete</button>
                   </div>
                 </>
               )}

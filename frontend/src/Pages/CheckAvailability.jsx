@@ -30,6 +30,7 @@ export default function CheckAvailability() {
   }, []);
 
   const uniqueRoomTypes = [...new Set(rooms.map((r) => r.type).filter(Boolean))];
+  const typesToCheck = uniqueRoomTypes.length > 0 ? uniqueRoomTypes : ["Single", "Double", "Deluxe"];
 
   const handleCheck = async (e) => {
     e.preventDefault();
@@ -53,7 +54,7 @@ export default function CheckAvailability() {
     setLoading(true);
     try {
       const results = {};
-      for (const type of uniqueRoomTypes) {
+      for (const type of typesToCheck) {
         try {
           const res = await checkRoomAvailability(type, checkIn, checkOut);
           results[type] = res.available;
@@ -75,13 +76,13 @@ export default function CheckAvailability() {
   const handleRegister = () => {
     sessionStorage.setItem("availabilityVerified", "true");
     sessionStorage.setItem("availableDates", JSON.stringify({ checkIn, checkOut }));
-    navigate("/register");
+    navigate("/customer-register");
   };
 
   const handleLogin = () => {
     sessionStorage.setItem("availabilityVerified", "true");
     sessionStorage.setItem("availableDates", JSON.stringify({ checkIn, checkOut }));
-    navigate("/login");
+    navigate("/customer-login");
   };
 
   return (

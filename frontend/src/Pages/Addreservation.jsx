@@ -43,7 +43,6 @@ export default function AddReservation() {
         const saved = await addReservation(data);
         sessionStorage.removeItem("availabilityVerified");
         sessionStorage.removeItem("availableDates");
-        alert("Thank you! Your reservation has been added successfully.");
         if (saved?.reservationNumber) {
           try {
             const blob = await getBill(saved.reservationNumber);
@@ -52,7 +51,12 @@ export default function AddReservation() {
             a.href = url;
             a.download = `bill-${saved.reservationNumber}.pdf`;
             a.click();
-          } catch (_) {}
+            alert("Thank you! Your reservation has been added. Bill calculated and downloaded.");
+          } catch (_) {
+            alert("Thank you! Your reservation has been added. Go to View Reservation to download your bill.");
+          }
+        } else {
+          alert("Thank you! Your reservation has been added successfully.");
         }
         formik.resetForm({ values: { ...formik.initialValues, checkIn: today, checkOut: "" } });
       } catch (err) {
