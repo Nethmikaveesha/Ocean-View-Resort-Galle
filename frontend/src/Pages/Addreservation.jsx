@@ -1,25 +1,17 @@
 import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { addReservation, checkRoomAvailability } from "../Services/api";
+import { addReservation, checkRoomAvailability, getBill } from "../Services/api";
 
-// Room rates
-const ROOM_RATES = {
-  Single: 10000,
-  Double: 15000,
-  Deluxe: 25000,
-};
-
-// Generate random reservation number
-const generateReservationNumber = () =>
-  "RES" + Math.floor(Math.random() * 1000000);
+const ROOM_RATES = { Single: 10000, Double: 15000, Deluxe: 25000 };
+const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function AddReservation() {
   const [bill, setBill] = useState(0);
   const [roomAvailable, setRoomAvailable] = useState(true);
-  const [reservationNumber, setReservationNumber] = useState(
-    generateReservationNumber()
-  );
+  const username = localStorage.getItem("username") || "";
+
+  const today = new Date().toISOString().split("T")[0];
 
   const formik = useFormik({
     initialValues: {
@@ -27,146 +19,161 @@ export default function AddReservation() {
       address: "",
       contactNumber: "",
       roomType: "Single",
-      checkInDate: "",
-      checkOutDate: "",
+      checkIn: today,
+      checkOut: "",
+      checkInTime: "12:00 PM",
+      checkOutTime: "11:00 AM",
     },
     validationSchema: Yup.object({
       guestName: Yup.string().required("Required"),
       address: Yup.string().required("Required"),
-      contactNumber: Yup.string().required("Required"),
+      contactNumber: Yup.string().matches(/^[0-9]{10}$/, "Must be 10 digits").required("Required"),
       roomType: Yup.string().required("Required"),
-      checkInDate: Yup.date()
-        .min(new Date(), "Check-in date cannot be in the past")
-        .required("Required"),
-      checkOutDate: Yup.date()
-        .min(Yup.ref("checkInDate"), "Check-out must be after check-in")
-        .required("Required"),
+      checkIn: Yup.date().min(today, "Check-in must be today").required("Required"),
+      checkOut: Yup.date().min(Yup.ref("checkIn"), "Check-out must be after check-in").required("Required"),
+      checkInTime: Yup.string().required("Required"),
+      checkOutTime: Yup.string().required("Required"),
     }),
     onSubmit: async (values) => {
       try {
-        const data = { ...values, reservationNumber };
-        await addReservation(data);
-        alert(
-          `Reservation successful!\nReservation Number: ${reservationNumber}\nTotal Bill: LKR ${bill}`
-        );
-        // Reset form & bill
-        formik.resetForm();
-        setBill(0);
-        setReservationNumber(generateReservationNumber());
+        const data = {
+          ...values,
+          customerUsername: username,
+        };
+        const saved = await addReservation(data);
+        alert("Thank you! Your reservation has been added successfully.");
+        if (saved?.reservationNumber) {
+          try {
+            const blob = await getBill(saved.reservationNumber);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `bill-${saved.reservationNumber}.pdf`;
+            a.click();
+          } catch (_) {}
+        }
+        formik.resetForm({ values: { ...formik.initialValues, checkIn: today, checkOut: "" } });
       } catch (err) {
-        alert("Error adding reservation: " + (err.message || err));
+        alert("Error adding reservation: " + (err?.message || "Please try again."));
       }
     },
   });
 
-  // Calculate bill whenever dates or room type change
   useEffect(() => {
-    const { checkInDate, checkOutDate, roomType } = formik.values;
-    if (!checkInDate || !checkOutDate) {
+    const { checkIn, checkOut, roomType } = formik.values;
+    if (!checkIn || !checkOut) {
       setBill(0);
       return;
     }
-    const start = new Date(checkInDate);
-    const end = new Date(checkOutDate);
-    const nights = (end - start) / (1000 * 60 * 60 * 24);
-    setBill(nights > 0 ? nights * ROOM_RATES[roomType] : 0);
-  }, [formik.values.checkInDate, formik.values.checkOutDate, formik.values.roomType]);
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
+    const rate = ROOM_RATES[roomType] || 10000;
+    setBill(nights * rate);
+  }, [formik.values.checkIn, formik.values.checkOut, formik.values.roomType]);
 
-  // Check room availability whenever dates or room type change
   useEffect(() => {
-    const { checkInDate, checkOutDate, roomType } = formik.values;
-    if (!checkInDate || !checkOutDate) return;
-
-    const checkAvailability = async () => {
-      try {
-        const res = await checkRoomAvailability(roomType, checkInDate, checkOutDate);
-        setRoomAvailable(res.available);
-      } catch (err) {
-        setRoomAvailable(false);
-      }
-    };
-    checkAvailability();
-  }, [formik.values.checkInDate, formik.values.checkOutDate, formik.values.roomType]);
+    const { checkIn, checkOut, roomType } = formik.values;
+    if (!checkIn || !checkOut) return;
+    checkRoomAvailability(roomType, checkIn, checkOut)
+      .then((r) => setRoomAvailable(r.available))
+      .catch(() => setRoomAvailable(false));
+  }, [formik.values.checkIn, formik.values.checkOut, formik.values.roomType]);
 
   return (
     <div className="p-8 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Add Reservation</h2>
-      <form onSubmit={formik.handleSubmit}>
+      <h2 className="text-2xl font-bold mb-4">Add New Reservation</h2>
+      <form onSubmit={formik.handleSubmit} className="space-y-3">
         <input
           type="text"
           name="guestName"
           placeholder="Guest Name"
-          className="border p-2 w-full mb-2"
+          className="border p-2 w-full rounded"
           onChange={formik.handleChange}
           value={formik.values.guestName}
         />
-        {formik.errors.guestName && <p className="text-red-500">{formik.errors.guestName}</p>}
+        {formik.errors.guestName && <p className="text-red-500 text-sm">{formik.errors.guestName}</p>}
 
         <input
           type="text"
           name="address"
           placeholder="Address"
-          className="border p-2 w-full mb-2"
+          className="border p-2 w-full rounded"
           onChange={formik.handleChange}
           value={formik.values.address}
         />
-        {formik.errors.address && <p className="text-red-500">{formik.errors.address}</p>}
+        {formik.errors.address && <p className="text-red-500 text-sm">{formik.errors.address}</p>}
 
         <input
           type="text"
           name="contactNumber"
-          placeholder="Contact Number"
-          className="border p-2 w-full mb-2"
+          placeholder="Contact Number (10 digits)"
+          className="border p-2 w-full rounded"
           onChange={formik.handleChange}
           value={formik.values.contactNumber}
         />
-        {formik.errors.contactNumber && <p className="text-red-500">{formik.errors.contactNumber}</p>}
+        {formik.errors.contactNumber && <p className="text-red-500 text-sm">{formik.errors.contactNumber}</p>}
 
-        <select
-          name="roomType"
-          className="border p-2 w-full mb-2"
-          onChange={formik.handleChange}
-          value={formik.values.roomType}
-        >
-          <option>Single</option>
-          <option>Double</option>
-          <option>Deluxe</option>
+        <select name="roomType" className="border p-2 w-full rounded" onChange={formik.handleChange} value={formik.values.roomType}>
+          <option value="Single">Single</option>
+          <option value="Double">Double</option>
+          <option value="Deluxe">Deluxe</option>
         </select>
 
-        <label className="block mt-2">Check-in Date</label>
-        <input
-          type="date"
-          name="checkInDate"
-          min={new Date().toISOString().split("T")[0]}
-          className="border p-2 w-full mb-2"
-          onChange={formik.handleChange}
-          value={formik.values.checkInDate}
-        />
-        {formik.errors.checkInDate && <p className="text-red-500">{formik.errors.checkInDate}</p>}
+        <div>
+          <label className="block text-sm mb-1">Check-in Date (today only)</label>
+          <input
+            type="date"
+            name="checkIn"
+            min={today}
+            className="border p-2 w-full rounded"
+            onChange={formik.handleChange}
+            value={formik.values.checkIn}
+          />
+        </div>
+        {formik.errors.checkIn && <p className="text-red-500 text-sm">{formik.errors.checkIn}</p>}
 
-        <label className="block mt-2">Check-out Date</label>
-        <input
-          type="date"
-          name="checkOutDate"
-          className="border p-2 w-full mb-4"
-          onChange={formik.handleChange}
-          value={formik.values.checkOutDate}
-        />
-        {formik.errors.checkOutDate && <p className="text-red-500">{formik.errors.checkOutDate}</p>}
+        <div>
+          <label className="block text-sm mb-1">Check-in Time (AM/PM)</label>
+          <select name="checkInTime" className="border p-2 w-full rounded" onChange={formik.handleChange} value={formik.values.checkInTime}>
+            {TIME_OPTIONS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
 
-        {!roomAvailable && <p className="text-red-600 mb-2">Room not available for selected dates!</p>}
+        <div>
+          <label className="block text-sm mb-1">Check-out Date (future)</label>
+          <input
+            type="date"
+            name="checkOut"
+            min={formik.values.checkIn || today}
+            className="border p-2 w-full rounded"
+            onChange={formik.handleChange}
+            value={formik.values.checkOut}
+          />
+        </div>
+        {formik.errors.checkOut && <p className="text-red-500 text-sm">{formik.errors.checkOut}</p>}
 
-        {/* BILL UI */}
-        <div className="bg-gray-100 p-4 rounded mb-4">
-          <p className="font-semibold">Reservation Number: {reservationNumber}</p>
-          <p className="font-semibold">Total Bill</p>
-          <p className="text-xl text-green-600">LKR {bill}</p>
+        <div>
+          <label className="block text-sm mb-1">Check-out Time (AM/PM)</label>
+          <select name="checkOutTime" className="border p-2 w-full rounded" onChange={formik.handleChange} value={formik.values.checkOutTime}>
+            {TIME_OPTIONS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+
+        {!roomAvailable && <p className="text-red-600">Room not available for selected dates!</p>}
+
+        <div className="bg-gray-100 p-4 rounded">
+          <p className="font-semibold">Total Bill: LKR {bill}</p>
         </div>
 
         <button
           type="submit"
           disabled={!roomAvailable}
-          className={`px-6 py-2 rounded text-white ${roomAvailable ? "bg-green-600" : "bg-gray-400 cursor-not-allowed"}`}
+          className={`px-6 py-2 rounded text-white ${roomAvailable ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"}`}
         >
           Add Reservation
         </button>

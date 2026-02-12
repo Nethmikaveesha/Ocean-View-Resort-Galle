@@ -1,135 +1,176 @@
-// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
-import api from "../Services/api";
+import { getRooms, getReservations, getCustomers, addRoom, deleteRoom, addReservation } from "../Services/api";
+
+const ROOM_TYPES = ["Single", "Double", "Deluxe"];
+const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function AdminDashboard() {
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [newRoom, setNewRoom] = useState({ type: "", rate: "" });
+  const [newRoom, setNewRoom] = useState({ type: "Single", price: 10000, imageBase64: "" });
+  const [addResModal, setAddResModal] = useState(false);
+  const [newRes, setNewRes] = useState({ guestName: "", address: "", contactNumber: "", roomType: "Single", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
 
-  // Fetch all data from backend
+  const fetchData = async () => {
+    try {
+      const [r, res, c] = await Promise.all([getRooms(), getReservations(), getCustomers()]);
+      setRooms(r || []);
+      setReservations(res || []);
+      setCustomers(c || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    fetchRooms();
-    fetchReservations();
-    fetchCustomers();
+    fetchData();
   }, []);
 
-  // Fetch all rooms
-  const fetchRooms = async () => {
-    try {
-      const res = await api.get("/rooms"); // or "/rooms/available" if you want only available
-      setRooms(res.data);
-    } catch (err) {
-      console.error("Error fetching rooms:", err);
-    }
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setNewRoom((prev) => ({ ...prev, imageBase64: reader.result }));
+    reader.readAsDataURL(file);
   };
 
-  // Fetch reservations
-  const fetchReservations = async () => {
-    try {
-      const res = await api.get("/reservations");
-      setReservations(res.data);
-    } catch (err) {
-      console.error("Error fetching reservations:", err);
-    }
-  };
-
-  // Fetch customers
-  const fetchCustomers = async () => {
-    try {
-      const res = await api.get("/customers");
-      setCustomers(res.data);
-    } catch (err) {
-      console.error("Error fetching customers:", err);
-    }
-  };
-
-  // Add new room
   const handleAddRoom = async () => {
-    if (!newRoom.type || !newRoom.rate) {
-      alert("Please fill in room type and rate.");
+    if (!newRoom.type || !newRoom.price) {
+      alert("Type and price are required.");
       return;
     }
-
     try {
-      await api.post("/rooms", {
+      await addRoom({
         type: newRoom.type,
-        price: parseFloat(newRoom.rate),
+        price: Number(newRoom.price),
+        imageBase64: newRoom.imageBase64 || undefined,
         available: true,
       });
       alert("Room added successfully!");
-      setNewRoom({ type: "", rate: "" });
-      fetchRooms(); // refresh list immediately
+      setNewRoom({ type: "Single", price: 10000, imageBase64: "" });
+      fetchData();
     } catch (err) {
-      console.error("Error adding room:", err);
       alert("Failed to add room.");
     }
   };
 
+  const handleDeleteRoom = async (id) => {
+    if (!window.confirm("Delete this room?")) return;
+    try {
+      await deleteRoom(id);
+      alert("Room deleted.");
+      fetchData();
+    } catch (_) {
+      alert("Failed to delete.");
+    }
+  };
+
+  const handleAddReservation = async () => {
+    if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut) {
+      alert("Please fill guest name and dates.");
+      return;
+    }
+    try {
+      await addReservation(newRes);
+      alert("Reservation added successfully!");
+      setAddResModal(false);
+      setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
+      fetchData();
+    } catch (err) {
+      alert("Failed to add reservation.");
+    }
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
 
       {/* Add Room */}
-      <div className="mb-8 p-4 border rounded">
-        <h3 className="font-semibold mb-2">Add New Room</h3>
-        <input
-          placeholder="Room Type"
-          value={newRoom.type}
-          onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })}
-          className="border p-2 mr-2"
-        />
-        <input
-          type="number"
-          placeholder="Rate"
-          value={newRoom.rate}
-          onChange={(e) => setNewRoom({ ...newRoom, rate: e.target.value })}
-          className="border p-2 mr-2"
-        />
-        <button
-          onClick={handleAddRoom}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Add Room
-        </button>
-      </div>
+      <section className="mb-8 p-4 border rounded bg-gray-50">
+        <h3 className="font-semibold mb-3">Add New Room</h3>
+        <div className="flex flex-wrap gap-3 items-end">
+          <select value={newRoom.type} onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })} className="border p-2 rounded">
+            {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <input type="number" placeholder="Price (LKR)" value={newRoom.price} onChange={(e) => setNewRoom({ ...newRoom, price: e.target.value })} className="border p-2 rounded" />
+          <input type="file" accept="image/*" onChange={handleImageChange} className="border p-2 rounded" />
+          <button onClick={handleAddRoom} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Room</button>
+        </div>
+      </section>
 
-      {/* Rooms List */}
-      <div className="mb-8">
+      {/* Rooms */}
+      <section className="mb-8">
         <h3 className="font-semibold mb-2">Rooms</h3>
-        <ul className="border p-2 rounded">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rooms.map((room) => (
-            <li key={room.id}>
-              {room.type} - LKR {room.price} {room.available ? "(Available)" : "(Booked)"}
-            </li>
+            <div key={room.id} className="border rounded p-4 bg-white">
+              {room.imageBase64 && <img src={room.imageBase64} alt={room.type} className="w-full h-32 object-cover rounded mb-2" />}
+              <p className="font-medium">{room.type} - LKR {room.price}</p>
+              <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
+              <button onClick={() => handleDeleteRoom(room.id)} className="mt-2 text-red-600 text-sm">Delete</button>
+            </div>
           ))}
-        </ul>
-      </div>
+        </div>
+      </section>
 
-      {/* Reservations List */}
-      <div className="mb-8">
+      {/* Add Reservation (walk-in) */}
+      <section className="mb-8">
+        <button onClick={() => setAddResModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">Add Reservation (Walk-in)</button>
+        {addResModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="font-semibold mb-4">Add Reservation for Walk-in Customer</h3>
+              <div className="space-y-2">
+                <input placeholder="Guest Name" value={newRes.guestName} onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })} className="border p-2 w-full rounded" />
+                <input placeholder="Address" value={newRes.address} onChange={(e) => setNewRes({ ...newRes, address: e.target.value })} className="border p-2 w-full rounded" />
+                <input placeholder="Contact Number" value={newRes.contactNumber} onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })} className="border p-2 w-full rounded" />
+                <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value })} className="border p-2 w-full rounded">
+                  {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} placeholder="Check-in" className="border p-2 w-full rounded" />
+                <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} placeholder="Check-out" className="border p-2 w-full rounded" />
+                <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded">
+                  {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select value={newRes.checkOutTime} onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })} className="border p-2 w-full rounded">
+                  {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button onClick={handleAddReservation} className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
+                <button onClick={() => setAddResModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Reservations */}
+      <section className="mb-8">
         <h3 className="font-semibold mb-2">Reservations</h3>
-        <ul className="border p-2 rounded">
+        <ul className="border rounded divide-y max-h-48 overflow-y-auto">
           {reservations.map((resv) => (
-            <li key={resv.id}>
-              {resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.bill}
+            <li key={resv.reservationNumber} className="p-3">
+              {resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.totalBill}
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
-      {/* Customers List */}
-      <div>
+      {/* Customers */}
+      <section>
         <h3 className="font-semibold mb-2">Customers</h3>
-        <ul className="border p-2 rounded">
+        <ul className="border rounded divide-y max-h-48 overflow-y-auto">
           {customers.map((cust) => (
-            <li key={cust.id}>
-              {cust.name} - {cust.username} - {cust.contactNumber}
+            <li key={cust.id} className="p-3">
+              {cust.name || cust.username} - {cust.username} - {cust.contactNumber || "N/A"}
             </li>
           ))}
         </ul>
-      </div>
+      </section>
     </div>
   );
 }

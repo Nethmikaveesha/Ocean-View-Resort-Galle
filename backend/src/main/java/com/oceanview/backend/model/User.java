@@ -11,6 +11,9 @@ public class User {
     private String username;
     private String password;
     private String role;
+    private String name;
+    private String address;
+    private String contactNumber;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -23,4 +26,13 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getContactNumber() { return contactNumber; }
+    public void setContactNumber(String contactNumber) { this.contactNumber = contactNumber; }
 }

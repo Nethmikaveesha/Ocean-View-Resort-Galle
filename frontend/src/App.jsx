@@ -7,14 +7,15 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Pages
 import Home from "./pages/Home";
-import About from "./Pages/About";
-import Help from "./Pages/Help";
+import CheckAvailability from "./pages/CheckAvailability";
+import About from "./pages/About";
+import Help from "./pages/Help";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddReservation from "./pages/AddReservation";
-import ViewReservation from "./Pages/ViewReservation";
+import ViewReservation from "./pages/ViewReservation";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <div className="p-4">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/check" element={<CheckAvailability />} />
             <Route path="/about" element={<About />} />
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login />} />

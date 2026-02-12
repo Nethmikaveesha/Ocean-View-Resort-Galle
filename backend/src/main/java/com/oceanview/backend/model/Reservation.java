@@ -7,14 +7,17 @@ import java.time.LocalDate;
 @Document(collection = "reservations")
 public class Reservation {
     @Id
-    private String reservationNumber; // Primary key
+    private String reservationNumber; // Primary key, auto-generated
     private String guestName;
     private String address;
     private String contactNumber;
     private String roomType; // Single, Double, Deluxe
     private LocalDate checkIn;
     private LocalDate checkOut;
+    private String checkInTime;  // AM/PM format e.g. "2:00 PM"
+    private String checkOutTime; // AM/PM format e.g. "11:00 AM"
     private double totalBill;
+    private String customerUsername; // Link to customer for "my reservations"
 
     // Getters & Setters
     public String getReservationNumber() { return reservationNumber; }
@@ -40,4 +43,13 @@ public class Reservation {
 
     public double getTotalBill() { return totalBill; }
     public void setTotalBill(double totalBill) { this.totalBill = totalBill; }
+
+    public String getCheckInTime() { return checkInTime; }
+    public void setCheckInTime(String checkInTime) { this.checkInTime = checkInTime; }
+
+    public String getCheckOutTime() { return checkOutTime; }
+    public void setCheckOutTime(String checkOutTime) { this.checkOutTime = checkOutTime; }
+
+    public String getCustomerUsername() { return customerUsername; }
+    public void setCustomerUsername(String customerUsername) { this.customerUsername = customerUsername; }
 }

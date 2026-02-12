@@ -15,12 +15,22 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
   };
 
   // Load user from localStorage on refresh
   React.useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      const role = localStorage.getItem("userRole");
+      if (role) {
+        setUser({ role, username: localStorage.getItem("username") });
+      }
+    }
   }, []);
 
   return (

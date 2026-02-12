@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../Services/authService";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,15 +18,18 @@ export default function Login() {
       // Admin hard-coded login
       if (username === "admin" && password === "admin123") {
         localStorage.setItem("userRole", "admin");
+        login({ role: "admin", username: "admin" });
         navigate("/admin-dashboard");
         return;
       }
 
       // Customer login via backend
       const res = await loginUser({ username, password });
-      if (res.success) {
+      if (res.data?.token || res.data) {
         localStorage.setItem("userRole", "customer");
         localStorage.setItem("username", username);
+        if (res.data?.token) localStorage.setItem("token", res.data.token);
+        login({ role: "customer", username });
         navigate("/customer-dashboard");
       } else {
         setError("Invalid username or password");

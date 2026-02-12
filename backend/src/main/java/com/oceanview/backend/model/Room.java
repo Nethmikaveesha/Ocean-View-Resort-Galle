@@ -14,6 +14,7 @@ public class Room {
     private String type;
     private double price;
     private boolean available;
+    private String imageBase64; // Base64 encoded image for display
 
     public Room() {
     }
@@ -60,4 +61,7 @@ public class Room {
     public void setAvailable(boolean available) {
         this.available = available;
     }
+
+    public String getImageBase64() { return imageBase64; }
+    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
 }

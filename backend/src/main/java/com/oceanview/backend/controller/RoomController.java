@@ -18,9 +18,13 @@ public class RoomController {
     @Autowired
     private RoomService service;
 
-    // ✅ Add new room
+    // ✅ Add new room (accepts type, price, imageBase64 in JSON)
     @PostMapping
     public ResponseEntity<Room> addRoom(@RequestBody Room room) {
+        if (room.getRoomNumber() == null || room.getRoomNumber().isBlank()) {
+            room.setRoomNumber("R" + (service.getAllRooms().size() + 1));
+        }
+        room.setAvailable(true);
         Room savedRoom = service.addRoom(room);
         return ResponseEntity.ok(savedRoom);
     }
@@ -57,10 +61,11 @@ public class RoomController {
 
         if (roomOptional.isPresent()) {
             Room room = roomOptional.get();
-            room.setRoomNumber(updatedRoom.getRoomNumber());
-            room.setType(updatedRoom.getType());
-            room.setPrice(updatedRoom.getPrice());
+            if (updatedRoom.getRoomNumber() != null) room.setRoomNumber(updatedRoom.getRoomNumber());
+            if (updatedRoom.getType() != null) room.setType(updatedRoom.getType());
+            if (updatedRoom.getPrice() > 0) room.setPrice(updatedRoom.getPrice());
             room.setAvailable(updatedRoom.isAvailable());
+            if (updatedRoom.getImageBase64() != null) room.setImageBase64(updatedRoom.getImageBase64());
 
             Room saved = service.addRoom(room);
             return ResponseEntity.ok(saved);

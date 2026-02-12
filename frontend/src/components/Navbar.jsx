@@ -19,17 +19,18 @@ export default function Navbar() {
 
       <div className="space-x-4">
         <Link to="/">Home</Link>
+        <Link to="/check">Check Availability</Link>
         <Link to="/about">About</Link>
         <Link to="/help">Help</Link>
 
-        {!user && (
+        {!user && !localStorage.getItem("userRole") && (
           <>
             <Link to="/login">Login</Link>
             <Link to="/register">Register</Link>
           </>
         )}
 
-        {user && user.role === "customer" && (
+        {(user?.role === "customer" || localStorage.getItem("userRole") === "customer") && (
           <>
             <Link to="/customer-dashboard">Dashboard</Link>
             <Link to="/add-reservation">Add Reservation</Link>
@@ -43,7 +44,7 @@ export default function Navbar() {
           </>
         )}
 
-        {user && user.role === "admin" && (
+        {(user?.role === "admin" || localStorage.getItem("userRole") === "admin") && (
           <>
             <Link to="/admin-dashboard">Admin Dashboard</Link>
             <button
