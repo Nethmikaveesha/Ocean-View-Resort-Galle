@@ -1,5 +1,6 @@
 package com.oceanview.backend.model;
 
+import jakarta.validation.constraints.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
@@ -8,11 +9,20 @@ import java.time.LocalDate;
 public class Reservation {
     @Id
     private String reservationNumber; // Primary key, auto-generated
+    @NotBlank(message = "Guest name is required")
+    @Size(min = 2, max = 100)
     private String guestName;
+    @NotBlank(message = "Address is required")
+    @Size(max = 200)
     private String address;
+    @NotBlank(message = "Contact number is required")
+    @Pattern(regexp = "^[0-9]{10}$", message = "Contact must be 10 digits")
     private String contactNumber;
+    @NotBlank(message = "Room type is required")
     private String roomType; // Single, Double, Deluxe
+    @NotNull(message = "Check-in date is required")
     private LocalDate checkIn;
+    @NotNull(message = "Check-out date is required")
     private LocalDate checkOut;
     private String checkInTime;  // AM/PM format e.g. "2:00 PM"
     private String checkOutTime; // AM/PM format e.g. "11:00 AM"

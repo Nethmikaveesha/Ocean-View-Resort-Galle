@@ -41,6 +41,8 @@ export default function AddReservation() {
           customerUsername: username,
         };
         const saved = await addReservation(data);
+        sessionStorage.removeItem("availabilityVerified");
+        sessionStorage.removeItem("availableDates");
         alert("Thank you! Your reservation has been added successfully.");
         if (saved?.reservationNumber) {
           try {
@@ -54,7 +56,13 @@ export default function AddReservation() {
         }
         formik.resetForm({ values: { ...formik.initialValues, checkIn: today, checkOut: "" } });
       } catch (err) {
-        alert("Error adding reservation: " + (err?.message || "Please try again."));
+        const msg = err?.response?.data?.message
+          || (typeof err?.response?.data?.errors === "object"
+            ? Object.values(err.response.data.errors || {}).join(", ")
+            : null)
+          || err?.message
+          || "Please try again.";
+        alert("Error adding reservation: " + msg);
       }
     },
   });
@@ -76,7 +84,7 @@ export default function AddReservation() {
     const { checkIn, checkOut, roomType } = formik.values;
     if (!checkIn || !checkOut) return;
     checkRoomAvailability(roomType, checkIn, checkOut)
-      .then((r) => setRoomAvailable(r.available))
+      .then((r) => setRoomAvailable(r.available === true))
       .catch(() => setRoomAvailable(false));
   }, [formik.values.checkIn, formik.values.checkOut, formik.values.roomType]);
 
@@ -114,11 +122,14 @@ export default function AddReservation() {
         />
         {formik.errors.contactNumber && <p className="text-red-500 text-sm">{formik.errors.contactNumber}</p>}
 
-        <select name="roomType" className="border p-2 w-full rounded" onChange={formik.handleChange} value={formik.values.roomType}>
-          <option value="Single">Single</option>
-          <option value="Double">Double</option>
-          <option value="Deluxe">Deluxe</option>
-        </select>
+        <div>
+          <label className="block text-sm mb-1">Room Type</label>
+          <select name="roomType" className="border p-2 w-full rounded" onChange={formik.handleChange} value={formik.values.roomType}>
+            <option value="Single">Single</option>
+            <option value="Double">Double</option>
+            <option value="Deluxe">Deluxe</option>
+          </select>
+        </div>
 
         <div>
           <label className="block text-sm mb-1">Check-in Date (today only)</label>

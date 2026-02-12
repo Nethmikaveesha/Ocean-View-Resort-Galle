@@ -36,14 +36,24 @@ public class ReservationController {
     }
 
     @GetMapping("/availability")
-    public ResponseEntity<Map<String, Boolean>> checkAvailability(
+    public ResponseEntity<?> checkAvailability(
             @RequestParam String roomType,
             @RequestParam String checkIn,
             @RequestParam String checkOut) {
-        LocalDate ci = LocalDate.parse(checkIn);
-        LocalDate co = LocalDate.parse(checkOut);
-        boolean available = service.checkAvailability(roomType, ci, co);
-        return ResponseEntity.ok(Map.of("available", available));
+        try {
+            LocalDate ci = LocalDate.parse(checkIn);
+            LocalDate co = LocalDate.parse(checkOut);
+            if (ci.isBefore(LocalDate.now())) {
+                return ResponseEntity.badRequest().body(Map.of("available", false, "message", "Check-in cannot be in the past"));
+            }
+            if (!co.isAfter(ci)) {
+                return ResponseEntity.badRequest().body(Map.of("available", false, "message", "Check-out must be after check-in"));
+            }
+            boolean available = service.checkAvailability(roomType, ci, co);
+            return ResponseEntity.ok(Map.of("available", available));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("available", false, "message", e.getMessage()));
+        }
     }
 
     @PostMapping

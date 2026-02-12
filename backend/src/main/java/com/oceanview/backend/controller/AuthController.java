@@ -1,8 +1,9 @@
 package com.oceanview.backend.controller;
 
 import com.oceanview.backend.config.JwtUtil;
-import com.oceanview.backend.model.User; // your model
+import com.oceanview.backend.model.User;
 import com.oceanview.backend.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +50,7 @@ private AuthenticationManager authenticationManager;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@Valid @RequestBody User user) {
         try {
             User created = authService.register(user);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);

@@ -5,9 +5,9 @@ import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
+
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
@@ -23,7 +23,11 @@ export default function Login() {
         return;
       }
 
-      // Customer login via backend
+      // Customer login - must have verified availability first
+      if (!sessionStorage.getItem("availabilityVerified")) {
+        setError("Please check room availability first before logging in.");
+        return;
+      }
       const res = await loginUser({ username, password });
       if (res.data?.token || res.data) {
         localStorage.setItem("userRole", "customer");

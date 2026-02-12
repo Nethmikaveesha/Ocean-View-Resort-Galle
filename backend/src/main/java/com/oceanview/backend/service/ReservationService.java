@@ -31,6 +31,17 @@ public class ReservationService {
     }
 
     public Reservation addReservation(Reservation reservation) {
+        LocalDate today = LocalDate.now();
+        if (reservation.getCheckIn().isBefore(today)) {
+            throw new IllegalArgumentException("Check-in date cannot be in the past");
+        }
+        if (!reservation.getCheckOut().isAfter(reservation.getCheckIn())) {
+            throw new IllegalArgumentException("Check-out date must be after check-in");
+        }
+        if (!checkAvailability(reservation.getRoomType(), reservation.getCheckIn(), reservation.getCheckOut())) {
+            throw new IllegalArgumentException("Room not available for selected dates");
+        }
+
         String resNum = "RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         reservation.setReservationNumber(resNum);
 
