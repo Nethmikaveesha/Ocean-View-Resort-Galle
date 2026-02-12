@@ -2,21 +2,26 @@
 package com.oceanview.backend.controller;
 
 import com.oceanview.backend.model.Room;
+import com.oceanview.backend.service.ReservationService;
 import com.oceanview.backend.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/rooms")
-@CrossOrigin(origins = "http://localhost:5173") // allow Vite frontend
+@CrossOrigin(origins = "http://localhost:5173")
 public class RoomController {
 
     @Autowired
     private RoomService service;
+
+    @Autowired
+    private ReservationService reservationService;
 
     // ✅ Add new room (accepts type, price, imageBase64 in JSON)
     @PostMapping
@@ -35,10 +40,21 @@ public class RoomController {
         return ResponseEntity.ok(service.getAllRooms());
     }
 
-    // ✅ Get available rooms
+    // ✅ Get available rooms (general - no date filter)
     @GetMapping("/available")
     public ResponseEntity<List<Room>> getAvailableRooms() {
         return ResponseEntity.ok(service.availableRooms());
+    }
+
+    // ✅ Get rooms available for specific dates (by date overlap, not permanent flag)
+    @GetMapping("/available-for-dates")
+    public ResponseEntity<List<Room>> getAvailableRoomsForDates(
+            @RequestParam String roomType,
+            @RequestParam String checkIn,
+            @RequestParam String checkOut) {
+        LocalDate ci = LocalDate.parse(checkIn);
+        LocalDate co = LocalDate.parse(checkOut);
+        return ResponseEntity.ok(reservationService.getAvailableRoomsForDates(roomType, ci, co));
     }
 
     // ✅ Get room by ID

@@ -37,6 +37,7 @@ export default function ViewReservation() {
       address: r.address,
       contactNumber: r.contactNumber,
       roomType: r.roomType,
+      roomId: r.roomId,
       checkIn: r.checkIn || r.checkInDate || today,
       checkOut: r.checkOut || r.checkOutDate || today,
       checkInTime: r.checkInTime || "12:00 PM",
@@ -123,15 +124,8 @@ export default function ViewReservation() {
                     value={form.contactNumber}
                     onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
                   />
-                  <select
-                    value={form.roomType}
-                    onChange={(e) => setForm({ ...form, roomType: e.target.value })}
-                    className="border p-2 w-full rounded"
-                  >
-                    <option>Single</option>
-                    <option>Double</option>
-                    <option>Deluxe</option>
-                  </select>
+                  {form.roomId && <input type="hidden" name="roomId" value={form.roomId} />}
+                  <p className="text-sm text-gray-600">Room: {form.roomType} (ID: {form.roomId || "N/A"})</p>
                   <input type="date" value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value })} className="border p-2 w-full rounded" />
                   <input type="date" value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} className="border p-2 w-full rounded" />
                   <div className="flex gap-2 mt-2">

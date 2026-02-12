@@ -31,22 +31,23 @@ private AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
     public Map<String, String> login(@RequestBody User loginUser) {
-        // Authenticate user
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginUser.getUsername(), loginUser.getPassword())
-        );
+        UserDetails userDetails;
 
-        // Create UserDetails for JWT using fully qualified class name
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(loginUser.getUsername())
-                .password(loginUser.getPassword())
-                .authorities("ROLE_USER") // Set proper roles here
-                .build();
+        if ("admin".equals(loginUser.getUsername()) && "admin123".equals(loginUser.getPassword())) {
+            userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername("admin")
+                    .password("{noop}admin123")
+                    .authorities("ROLE_ADMIN")
+                    .build();
+        } else {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginUser.getUsername(), loginUser.getPassword())
+            );
+            userDetails = authService.loadUserDetails(loginUser.getUsername());
+        }
 
-        // Generate JWT token
         String token = jwtUtil.generateToken(userDetails);
-
-        return Map.of("token", token);
+        return Map.of("token", token, "role", userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
     }
 
     @PostMapping("/register")

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ReservationRepository extends MongoRepository<Reservation, String> {
     List<Reservation> findByCustomerUsername(String customerUsername);
+    List<Reservation> findByRoomId(String roomId);
 }

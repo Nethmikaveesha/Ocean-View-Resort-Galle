@@ -5,6 +5,8 @@ import com.oceanview.backend.service.ReservationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,11 +30,15 @@ public class ReservationController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<?> getMyReservations(@RequestParam(required = false) String username) {
-        if (username == null || username.isBlank()) {
+    public ResponseEntity<?> getMyReservations(@RequestParam(required = false) String username, Authentication auth) {
+        String customerUsername = username;
+        if (auth != null && auth.isAuthenticated() && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
+            customerUsername = auth.getName();
+        }
+        if (customerUsername == null || customerUsername.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Username required"));
         }
-        return ResponseEntity.ok(service.getReservationsByCustomer(username));
+        return ResponseEntity.ok(service.getReservationsByCustomer(customerUsername));
     }
 
     @GetMapping("/availability")
@@ -57,8 +63,11 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addReservation(@Valid @RequestBody Reservation reservation) {
+    public ResponseEntity<?> addReservation(@Valid @RequestBody Reservation reservation, Authentication auth) {
         try {
+            if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CUSTOMER"))) {
+                reservation.setCustomerUsername(auth.getName());
+            }
             Reservation saved = service.addReservation(reservation);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (Exception e) {

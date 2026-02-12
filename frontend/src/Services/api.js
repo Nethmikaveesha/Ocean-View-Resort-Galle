@@ -9,17 +9,14 @@ const api = axios.create({
   },
 });
 
-// ===== USER AUTH =====
-export const loginCustomer = async (username, password) => {
-  try {
-    const res = await api.post("/auth/login", { username, password });
-    return res.data;
-  } catch (error) {
-    throw error.response ? error.response.data : error;
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
 
-// ===== RESERVATIONS =====
 export const addReservation = async (reservationData) => {
   const res = await api.post("/reservations", reservationData);
   return res.data;
@@ -56,7 +53,13 @@ export const checkRoomAvailability = async (roomType, checkIn, checkOut) => {
   return res.data;
 };
 
-// ===== ROOMS =====
+export const getAvailableRoomsForDates = async (roomType, checkIn, checkOut) => {
+  const res = await api.get("/rooms/available-for-dates", {
+    params: { roomType, checkIn, checkOut },
+  });
+  return res.data;
+};
+
 export const getRooms = async () => {
   const res = await api.get("/rooms");
   return res.data;
@@ -81,13 +84,11 @@ export const deleteRoom = async (id) => {
   await api.delete(`/rooms/${id}`);
 };
 
-// ===== CUSTOMERS =====
 export const getCustomers = async () => {
   const res = await api.get("/customers");
   return res.data;
 };
 
-// ===== BILL =====
 export const getBill = async (reservationNumber) => {
   const res = await api.get(`/bills/${reservationNumber}`, { responseType: "blob" });
   return res.data;

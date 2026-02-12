@@ -3,6 +3,7 @@ package com.oceanview.backend.service;
 import com.oceanview.backend.model.User;
 import com.oceanview.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,13 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    public UserDetails loadUserDetails(String username) {
+        return userDetailsService.loadUserByUsername(username);
+    }
 
     public User register(User user) {
         Optional<User> existing = repo.findByUsername(user.getUsername());

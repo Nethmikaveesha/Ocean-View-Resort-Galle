@@ -38,35 +38,29 @@ public class ReservationService {
         if (!reservation.getCheckOut().isAfter(reservation.getCheckIn())) {
             throw new IllegalArgumentException("Check-out date must be after check-in");
         }
-        if (!checkAvailability(reservation.getRoomType(), reservation.getCheckIn(), reservation.getCheckOut())) {
+        if (reservation.getRoomId() == null || reservation.getRoomId().isBlank()) {
+            throw new IllegalArgumentException("Room ID is required");
+        }
+
+        Room room = roomService.getRoomById(reservation.getRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+        if (!room.isAvailable()) {
+            throw new IllegalArgumentException("Room is not available for booking");
+        }
+        if (!isRoomAvailableForDates(reservation.getRoomId(), reservation.getCheckIn(), reservation.getCheckOut(), null)) {
             throw new IllegalArgumentException("Room not available for selected dates");
         }
 
         String resNum = "RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         reservation.setReservationNumber(resNum);
+        reservation.setRoomType(room.getType());
 
-        double ratePerNight = getRoomRate(reservation.getRoomType());
         long nights = ChronoUnit.DAYS.between(reservation.getCheckIn(), reservation.getCheckOut());
         if (nights < 1) nights = 1;
-        reservation.setTotalBill(nights * ratePerNight);
+        double bill = nights * room.getPrice();
+        reservation.setTotalBill(bill);
 
         return repository.save(reservation);
-    }
-
-    private double getRoomRate(String roomType) {
-        List<Room> rooms = roomService.getAllRooms().stream()
-                .filter(r -> r.getType().equalsIgnoreCase(roomType))
-                .toList();
-        return rooms.isEmpty() ? getDefaultRate(roomType) : rooms.get(0).getPrice();
-    }
-
-    private double getDefaultRate(String roomType) {
-        return switch (roomType) {
-            case "Single" -> 10000;
-            case "Double" -> 15000;
-            case "Deluxe" -> 25000;
-            default -> 10000;
-        };
     }
 
     public Reservation getReservation(String id) {
@@ -80,15 +74,25 @@ public class ReservationService {
         r.setGuestName(reservation.getGuestName());
         r.setAddress(reservation.getAddress());
         r.setContactNumber(reservation.getContactNumber());
-        r.setRoomType(reservation.getRoomType());
         r.setCheckIn(reservation.getCheckIn());
         r.setCheckOut(reservation.getCheckOut());
         r.setCheckInTime(reservation.getCheckInTime());
         r.setCheckOutTime(reservation.getCheckOutTime());
-        double ratePerNight = getRoomRate(reservation.getRoomType());
+
+        String roomId = (reservation.getRoomId() != null && !reservation.getRoomId().isBlank()) ? reservation.getRoomId() : r.getRoomId();
+        if (roomId == null || roomId.isBlank()) {
+            throw new IllegalArgumentException("Room ID is required for update");
+        }
+        Room room = roomService.getRoomById(roomId).orElseThrow(() -> new IllegalArgumentException("Room not found"));
+        if (!isRoomAvailableForDates(roomId, reservation.getCheckIn(), reservation.getCheckOut(), id)) {
+            throw new IllegalArgumentException("Room not available for selected dates");
+        }
+        r.setRoomId(roomId);
+        r.setRoomType(room.getType());
         long nights = ChronoUnit.DAYS.between(reservation.getCheckIn(), reservation.getCheckOut());
         if (nights < 1) nights = 1;
-        r.setTotalBill(nights * ratePerNight);
+        r.setTotalBill(nights * room.getPrice());
+
         return repository.save(r);
     }
 
@@ -97,15 +101,30 @@ public class ReservationService {
     }
 
     public boolean checkAvailability(String roomType, LocalDate checkIn, LocalDate checkOut) {
-        List<Room> availableRooms = roomService.getAllRooms().stream()
+        List<Room> roomsOfType = roomService.getAllRooms().stream()
                 .filter(r -> r.getType().equalsIgnoreCase(roomType) && r.isAvailable())
                 .toList();
-        if (availableRooms.isEmpty()) return false;
+        if (roomsOfType.isEmpty()) return false;
+        for (Room room : roomsOfType) {
+            if (isRoomAvailableForDates(room.getId(), checkIn, checkOut, null)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-        List<Reservation> conflicting = repository.findAll().stream()
-                .filter(res -> res.getRoomType().equalsIgnoreCase(roomType))
+    private boolean isRoomAvailableForDates(String roomId, LocalDate checkIn, LocalDate checkOut, String excludeReservationId) {
+        List<Reservation> overlapping = repository.findByRoomId(roomId).stream()
+                .filter(res -> !res.getReservationNumber().equals(excludeReservationId))
                 .filter(res -> !(checkOut.isBefore(res.getCheckIn()) || checkIn.isAfter(res.getCheckOut())))
                 .toList();
-        return conflicting.size() < availableRooms.size();
+        return overlapping.isEmpty();
+    }
+
+    public List<Room> getAvailableRoomsForDates(String roomType, LocalDate checkIn, LocalDate checkOut) {
+        return roomService.getAllRooms().stream()
+                .filter(r -> r.getType().equalsIgnoreCase(roomType) && r.isAvailable())
+                .filter(r -> isRoomAvailableForDates(r.getId(), checkIn, checkOut, null))
+                .toList();
     }
 }

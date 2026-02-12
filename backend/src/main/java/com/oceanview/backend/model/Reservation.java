@@ -18,8 +18,9 @@ public class Reservation {
     @NotBlank(message = "Contact number is required")
     @Pattern(regexp = "^[0-9]{10}$", message = "Contact must be 10 digits")
     private String contactNumber;
-    @NotBlank(message = "Room type is required")
-    private String roomType; // Single, Double, Deluxe
+    @NotBlank(message = "Room ID is required")
+    private String roomId;   // Specific room (required for booking)
+    private String roomType; // Derived from room, for display
     @NotNull(message = "Check-in date is required")
     private LocalDate checkIn;
     @NotNull(message = "Check-out date is required")
@@ -42,6 +43,8 @@ public class Reservation {
     public String getContactNumber() { return contactNumber; }
     public void setContactNumber(String contactNumber) { this.contactNumber = contactNumber; }
 
+    public String getRoomId() { return roomId; }
+    public void setRoomId(String roomId) { this.roomId = roomId; }
     public String getRoomType() { return roomType; }
     public void setRoomType(String roomType) { this.roomType = roomType; }
 

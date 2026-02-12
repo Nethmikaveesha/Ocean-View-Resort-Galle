@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { loginUser } from "../Services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,15 +10,24 @@ export default function Login() {
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (username === "admin" && password === "admin123") {
-      localStorage.setItem("userRole", "admin");
-      login({ role: "admin", username: "admin" });
-      navigate("/admin-dashboard");
-    } else {
+    if (username !== "admin") {
+      setError("Admin login only. Use username: admin");
+      return;
+    }
+    try {
+      const res = await loginUser({ username, password });
+      if (res.data?.token) {
+        localStorage.setItem("userRole", "admin");
+        localStorage.setItem("token", res.data.token);
+        login({ role: "admin", username: "admin" });
+        navigate("/admin-dashboard");
+      } else {
+        setError("Invalid credentials");
+      }
+    } catch (err) {
       setError("Invalid admin credentials. Use username: admin, password: admin123");
     }
   };

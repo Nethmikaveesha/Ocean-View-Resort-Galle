@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRooms, getReservations, getCustomers, addRoom, deleteRoom, addReservation } from "../Services/api";
+import { getRooms, getReservations, getCustomers, addRoom, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
@@ -14,7 +14,8 @@ export default function AdminDashboard() {
   const [customers, setCustomers] = useState([]);
   const [newRoom, setNewRoom] = useState({ type: "Single", price: 10000, imageBase64: "" });
   const [addResModal, setAddResModal] = useState(false);
-  const [newRes, setNewRes] = useState({ guestName: "", address: "", contactNumber: "", roomType: "Single", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
+  const [newRes, setNewRes] = useState({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
+  const [availableRoomsForRes, setAvailableRoomsForRes] = useState([]);
 
   const fetchData = async () => {
     try {
@@ -71,22 +72,32 @@ export default function AdminDashboard() {
   };
 
   const handleAddReservation = async () => {
-    if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut) {
-      alert("Please fill guest name and dates.");
+    if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
+      alert("Please fill guest name, dates, and select a room.");
       return;
     }
     try {
-      await addReservation(newRes);
+      await addReservation({
+        ...newRes,
+        customerUsername: null,
+      });
       alert("Reservation added successfully!");
       setAddResModal(false);
-      setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
+      setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      alert("Failed to add reservation.");
+      alert("Failed to add reservation: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
   const today = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    if (!addResModal || !newRes.checkIn || !newRes.checkOut || !newRes.roomType) return;
+    getAvailableRoomsForDates(newRes.roomType, newRes.checkIn, newRes.checkOut)
+      .then((r) => setAvailableRoomsForRes(r || []))
+      .catch(() => setAvailableRoomsForRes([]));
+  }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
 
   return (
     <div className="p-8">
@@ -131,9 +142,18 @@ export default function AdminDashboard() {
                 <input placeholder="Guest Name" value={newRes.guestName} onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })} className="border p-2 w-full rounded" />
                 <input placeholder="Address" value={newRes.address} onChange={(e) => setNewRes({ ...newRes, address: e.target.value })} className="border p-2 w-full rounded" />
                 <input placeholder="Contact Number" value={newRes.contactNumber} onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })} className="border p-2 w-full rounded" />
-                <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value })} className="border p-2 w-full rounded">
+                <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })} className="border p-2 w-full rounded">
                   {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
+                <div>
+                  <label className="text-sm">Select Room</label>
+                  <select value={newRes.roomId} onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })} className="border p-2 w-full rounded">
+                    <option value="">-- Select room --</option>
+                    {availableRoomsForRes.map((room) => (
+                      <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
+                    ))}
+                  </select>
+                </div>
                 <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} placeholder="Check-in" className="border p-2 w-full rounded" />
                 <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} placeholder="Check-out" className="border p-2 w-full rounded" />
                 <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded">
