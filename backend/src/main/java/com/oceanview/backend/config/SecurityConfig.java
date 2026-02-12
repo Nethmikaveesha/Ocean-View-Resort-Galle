@@ -25,25 +25,31 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
-    // ✅ Password Encoder
+    // ✅ 1. Password Encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ Authentication Provider (UPDATED FOR SECURITY 7)
+    // ✅ 2. Authentication Provider (CORRECT FOR SPRING SECURITY 6)
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        return new DaoAuthenticationProvider(userDetailsService);
+
+        DaoAuthenticationProvider authProvider =
+                new DaoAuthenticationProvider(userDetailsService);
+
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
     }
 
-    // ✅ Authentication Manager
+    // ✅ 3. Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // ✅ Security Filter Chain
+    // ✅ 4. Security Filter Chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -66,7 +72,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ CORS Configuration
+    // ✅ 5. CORS Configuration (for React)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
