@@ -1,5 +1,6 @@
 package com.oceanview.backend.controller;
 
+import com.oceanview.backend.config.Roles;
 import com.oceanview.backend.model.Admin;
 import com.oceanview.backend.repository.AdminRepository;
 import jakarta.validation.Valid;
@@ -42,7 +43,7 @@ public class AdminController {
         Admin admin = new Admin();
         admin.setUsername(request.getUsername());
         admin.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        admin.setRole(request.getRole() != null ? request.getRole().toUpperCase() : "RECEPTIONIST");
+        admin.setRole(request.getRole() != null ? request.getRole().toUpperCase() : Roles.RECEPTIONIST);
         adminRepository.save(admin);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Admin created"));
     }

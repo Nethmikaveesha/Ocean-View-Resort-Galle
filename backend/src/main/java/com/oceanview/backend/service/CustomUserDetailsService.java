@@ -1,5 +1,6 @@
 package com.oceanview.backend.service;
 
+import com.oceanview.backend.config.Roles;
 import com.oceanview.backend.model.Admin;
 import com.oceanview.backend.model.User;
 import com.oceanview.backend.repository.AdminRepository;
@@ -28,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();
             Collection<? extends GrantedAuthority> authorities =
-                    List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                    List.of(new SimpleGrantedAuthority(Roles.ROLE_ADMIN));
             return new org.springframework.security.core.userdetails.User(
                     admin.getUsername(),
                     admin.getPasswordHash(),

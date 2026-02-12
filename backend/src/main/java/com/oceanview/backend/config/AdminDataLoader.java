@@ -1,5 +1,6 @@
 package com.oceanview.backend.config;
 
+import com.oceanview.backend.config.Roles;
 import com.oceanview.backend.model.Admin;
 import com.oceanview.backend.repository.AdminRepository;
 import org.springframework.boot.ApplicationRunner;
@@ -17,7 +18,7 @@ public class AdminDataLoader {
                 Admin admin = new Admin();
                 admin.setUsername("admin");
                 admin.setPasswordHash(passwordEncoder.encode("admin123"));
-                admin.setRole("ADMIN");
+                admin.setRole(Roles.ADMIN);
                 adminRepository.save(admin);
             }
         };

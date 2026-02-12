@@ -3,23 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { getRooms, getReservations, getCustomers, getAdmins, addRoom, addAdmin, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 
+import { ROLE_ADMIN, ADMIN_ROLE_OPTIONS, ADMIN_SUBROLES } from "../constants/roles";
+
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = React.useContext(AuthContext);
+  const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [admins, setAdmins] = useState([]);
-  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "RECEPTIONIST" });
+  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: ADMIN_SUBROLES.RECEPTIONIST });
   const [newRoom, setNewRoom] = useState({ type: "Single", price: 10000, imageBase64: "" });
   const [addResModal, setAddResModal] = useState(false);
   const [newRes, setNewRes] = useState({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
   const [availableRoomsForRes, setAvailableRoomsForRes] = useState([]);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [r, res, c, a] = await Promise.all([getRooms(), getReservations(), getCustomers(), getAdmins().catch(() => [])]);
       setRooms(r || []);
@@ -34,11 +38,13 @@ export default function AdminDashboard() {
       } else {
         console.error(err);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (localStorage.getItem("userRole") === "admin" && !localStorage.getItem("token")) {
+    if (localStorage.getItem("userRole") === ROLE_ADMIN && !localStorage.getItem("token")) {
       navigate("/login");
       return;
     }
@@ -125,7 +131,7 @@ export default function AdminDashboard() {
     try {
       await addAdmin(newAdmin);
       alert("Admin created successfully!");
-      setNewAdmin({ username: "", password: "", role: "RECEPTIONIST" });
+      setNewAdmin({ username: "", password: "", role: ADMIN_SUBROLES.RECEPTIONIST });
       fetchData();
     } catch (err) {
       alert("Failed: " + (err?.response?.data?.message || "Username may already exist."));
@@ -140,6 +146,17 @@ export default function AdminDashboard() {
       .then((r) => setAvailableRoomsForRes(r || []))
       .catch(() => setAvailableRoomsForRes([]));
   }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
+
+  if (loading && rooms.length === 0 && reservations.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[200px]">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -233,9 +250,9 @@ export default function AdminDashboard() {
           <input placeholder="Username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="border p-2 rounded" />
           <input type="password" placeholder="Password (min 6)" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="border p-2 rounded" />
           <select value={newAdmin.role} onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })} className="border p-2 rounded">
-            <option value="ADMIN">Admin</option>
-            <option value="MANAGER">Manager</option>
-            <option value="RECEPTIONIST">Receptionist</option>
+            {ADMIN_ROLE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
           <button onClick={handleAddAdmin} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Admin</button>
         </div>

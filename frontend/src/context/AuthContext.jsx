@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("userRole");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    sessionStorage.removeItem("availabilityVerified");
+    sessionStorage.removeItem("availableDates");
   };
 
   // Load user from localStorage on refresh

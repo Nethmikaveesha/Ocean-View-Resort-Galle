@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import { ROLE_ADMIN, ROLE_CUSTOMER } from "./constants/roles";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -35,7 +35,7 @@ function App() {
             <Route
               path="/customer-dashboard"
               element={
-                <ProtectedRoute role="customer">
+                <ProtectedRoute role={ROLE_CUSTOMER}>
                   <CustomerDashboard />
                 </ProtectedRoute>
               }
@@ -43,7 +43,7 @@ function App() {
             <Route
               path="/add-reservation"
               element={
-                <ProtectedRoute role="customer">
+                <ProtectedRoute role={ROLE_CUSTOMER}>
                   <AddReservation />
                 </ProtectedRoute>
               }
@@ -51,7 +51,7 @@ function App() {
             <Route
               path="/view-reservation"
               element={
-                <ProtectedRoute role="customer">
+                <ProtectedRoute role={ROLE_CUSTOMER}>
                   <ViewReservation />
                 </ProtectedRoute>
               }
@@ -61,7 +61,7 @@ function App() {
             <Route
               path="/admin-dashboard"
               element={
-                <ProtectedRoute role="admin">
+                <ProtectedRoute role={ROLE_ADMIN}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }

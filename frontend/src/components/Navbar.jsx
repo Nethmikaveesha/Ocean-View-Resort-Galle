@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { ROLE_ADMIN, ROLE_CUSTOMER } from "../constants/roles";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -23,14 +24,14 @@ export default function Navbar() {
         <Link to="/about" className="hover:underline">About</Link>
         <Link to="/help" className="hover:underline">Help</Link>
 
-        {userRole === "admin" ? (
+        {userRole === ROLE_ADMIN ? (
           <>
             <Link to="/admin-dashboard" className="hover:underline">Admin Dashboard</Link>
             <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">
               Logout
             </button>
           </>
-        ) : userRole === "customer" ? (
+        ) : userRole === ROLE_CUSTOMER ? (
           <>
             <Link to="/customer-dashboard" className="hover:underline">Dashboard</Link>
             <Link to="/add-reservation" className="hover:underline">Add Reservation</Link>
