@@ -20,7 +20,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        // 🔎 Find user by username
+        // 🔐 Hardcoded admin user (not stored in DB) - required for JWT validation after login
+        if ("admin".equals(username)) {
+            return org.springframework.security.core.userdetails.User
+                    .withUsername("admin")
+                    .password("{noop}admin123")
+                    .authorities("ROLE_ADMIN")
+                    .build();
+        }
+
+        // 🔎 Find user by username in DB
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with username: " + username)

@@ -24,13 +24,23 @@ export default function AdminDashboard() {
       setReservations(res || []);
       setCustomers(c || []);
     } catch (err) {
-      console.error(err);
+      if (err?.response?.status === 403 || err?.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userRole");
+        navigate("/login");
+      } else {
+        console.error(err);
+      }
     }
   };
 
   useEffect(() => {
+    if (localStorage.getItem("userRole") === "admin" && !localStorage.getItem("token")) {
+      navigate("/login");
+      return;
+    }
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -45,6 +55,11 @@ export default function AdminDashboard() {
       alert("Type and price are required.");
       return;
     }
+    if (!localStorage.getItem("token")) {
+      alert("Session expired. Please log in again as admin.");
+      navigate("/login");
+      return;
+    }
     try {
       await addRoom({
         type: newRoom.type,
@@ -56,7 +71,16 @@ export default function AdminDashboard() {
       setNewRoom({ type: "Single", price: 10000, imageBase64: "" });
       fetchData();
     } catch (err) {
-      alert("Failed to add room.");
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message;
+      if (status === 403 || status === 401) {
+        alert("Session expired or access denied. Please log in again as admin.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userRole");
+        navigate("/login");
+      } else {
+        alert("Failed to add room: " + (msg || "Please try again."));
+      }
     }
   };
 

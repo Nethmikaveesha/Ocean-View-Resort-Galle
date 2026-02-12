@@ -17,31 +17,22 @@ export default function Navbar() {
         <Link to="/">Ocean View Resort</Link>
       </div>
 
-      <div className="space-x-4">
-        <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
-        <Link to="/help">Help</Link>
+      <div className="flex flex-wrap items-center gap-4">
+        <Link to="/" className="hover:underline">Home</Link>
+        <Link to="/about" className="hover:underline">About</Link>
+        <Link to="/help" className="hover:underline">Help</Link>
 
-        {!user && !localStorage.getItem("userRole") && (
-          <Link to="/login">Admin Login</Link>
-        )}
-
-        {(user?.role === "customer" || localStorage.getItem("userRole") === "customer") && (
+        {(user?.role === "customer" || localStorage.getItem("userRole") === "customer") ? (
           <>
-            <Link to="/customer-dashboard">Dashboard</Link>
-            <Link to="/add-reservation">Add Reservation</Link>
-            <Link to="/view-reservation">View Reservation</Link>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 px-3 py-1 rounded"
-            >
+            <Link to="/customer-dashboard" className="hover:underline">Dashboard</Link>
+            <Link to="/add-reservation" className="hover:underline">Add Reservation</Link>
+            <Link to="/view-reservation" className="hover:underline">View Reservation</Link>
+            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">
               Logout
             </button>
           </>
-        )}
-
-        {(user?.role === "admin" || localStorage.getItem("userRole") === "admin") && (
-          <Link to="/admin-dashboard">Admin Dashboard</Link>
+        ) : (
+          <Link to="/login" className="hover:underline">Admin Login</Link>
         )}
       </div>
     </nav>
