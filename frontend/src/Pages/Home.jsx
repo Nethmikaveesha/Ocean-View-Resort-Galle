@@ -27,7 +27,7 @@ export default function Home() {
       {/* Hero image */}
       <div className="relative w-full h-[400px] sm:h-[500px] overflow-hidden">
         <img
-          src="/resort-hero.png"
+          src="/resort-hero.jpg"
           alt="Ocean View Resort - Pool and Gardens"
           className="w-full h-full object-cover"
         />
