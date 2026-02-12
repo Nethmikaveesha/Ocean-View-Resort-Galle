@@ -1,17 +1,20 @@
 import { Navigate } from "react-router-dom";
 
-// role = "admin" or "customer"
+/**
+ * Protects routes by role. Redirects to login if not authenticated.
+ * On role mismatch: admin→admin-dashboard, customer→customer-dashboard.
+ */
 export default function ProtectedRoute({ children, role }) {
   const userRole = localStorage.getItem("userRole");
+  const token = localStorage.getItem("token");
 
-  if (!userRole) {
-    // Not logged in
-    return <Navigate to="/login" />;
+  if (!token || !userRole) {
+    return <Navigate to="/login" replace />;
   }
 
   if (role && userRole !== role) {
-    // Role mismatch
-    return <Navigate to="/login" />;
+    if (userRole === "admin") return <Navigate to="/admin-dashboard" replace />;
+    return <Navigate to="/customer-dashboard" replace />;
   }
 
   return children;

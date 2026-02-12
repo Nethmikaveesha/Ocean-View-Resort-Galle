@@ -1,6 +1,7 @@
 package com.oceanview.backend.controller;
 
 import com.oceanview.backend.config.JwtUtil;
+import com.oceanview.backend.dto.LoginRequest;
 import com.oceanview.backend.model.User;
 import com.oceanview.backend.service.AuthService;
 import jakarta.validation.Valid;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -18,36 +20,33 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-//    @Autowired
-//    private AuthenticationManager authenticationManager;
-@Autowired
-private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private JwtUtil jwtUtil;
 
-        @Autowired
-        private AuthService authService;
+    @Autowired
+    private AuthService authService;
 
+    /**
+     * Unified login for admin and customer. Backend validates credentials and returns JWT with role.
+     */
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody User loginUser) {
-        UserDetails userDetails;
-
-        if ("admin".equals(loginUser.getUsername()) && "admin123".equals(loginUser.getPassword())) {
-            userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername("admin")
-                    .password("{noop}admin123")
-                    .authorities("ROLE_ADMIN")
-                    .build();
-        } else {
+    public Map<String, String> login(@Valid @RequestBody LoginRequest request) {
+        try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginUser.getUsername(), loginUser.getPassword())
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
-            userDetails = authService.loadUserDetails(loginUser.getUsername());
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Invalid username or password");
         }
 
+        UserDetails userDetails = authService.loadUserDetails(request.getUsername());
         String token = jwtUtil.generateToken(userDetails);
-        return Map.of("token", token, "role", userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", ""));
+        String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "").toLowerCase();
+
+        return Map.of("token", token, "role", role);
     }
 
     @PostMapping("/register")

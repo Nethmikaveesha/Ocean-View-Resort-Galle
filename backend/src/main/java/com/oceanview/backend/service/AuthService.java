@@ -35,7 +35,4 @@ public class AuthService {
         return repo.save(user);
     }
 
-    public boolean validateAdmin(String u, String p) {
-        return u.equals("admin") && p.equals("admin123");
-    }
 }

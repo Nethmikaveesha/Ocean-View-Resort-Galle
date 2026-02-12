@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRooms, getReservations, getCustomers, addRoom, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
+import { getRooms, getReservations, getCustomers, getAdmins, addRoom, addAdmin, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
@@ -12,6 +12,8 @@ export default function AdminDashboard() {
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "RECEPTIONIST" });
   const [newRoom, setNewRoom] = useState({ type: "Single", price: 10000, imageBase64: "" });
   const [addResModal, setAddResModal] = useState(false);
   const [newRes, setNewRes] = useState({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
@@ -19,10 +21,11 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [r, res, c] = await Promise.all([getRooms(), getReservations(), getCustomers()]);
+      const [r, res, c, a] = await Promise.all([getRooms(), getReservations(), getCustomers(), getAdmins().catch(() => [])]);
       setRooms(r || []);
       setReservations(res || []);
       setCustomers(c || []);
+      setAdmins(a || []);
     } catch (err) {
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         localStorage.removeItem("token");
@@ -111,6 +114,21 @@ export default function AdminDashboard() {
       fetchData();
     } catch (err) {
       alert("Failed to add reservation: " + (err?.response?.data?.message || "Try again."));
+    }
+  };
+
+  const handleAddAdmin = async () => {
+    if (!newAdmin.username || !newAdmin.password || newAdmin.password.length < 6) {
+      alert("Username and password (min 6 chars) required.");
+      return;
+    }
+    try {
+      await addAdmin(newAdmin);
+      alert("Admin created successfully!");
+      setNewAdmin({ username: "", password: "", role: "RECEPTIONIST" });
+      fetchData();
+    } catch (err) {
+      alert("Failed: " + (err?.response?.data?.message || "Username may already exist."));
     }
   };
 
@@ -206,6 +224,22 @@ export default function AdminDashboard() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Manage Admins */}
+      <section className="mb-8 p-4 border rounded bg-gray-50">
+        <h3 className="font-semibold mb-3">Add New Admin</h3>
+        <div className="flex flex-wrap gap-3 items-end mb-4">
+          <input placeholder="Username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="border p-2 rounded" />
+          <input type="password" placeholder="Password (min 6)" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="border p-2 rounded" />
+          <select value={newAdmin.role} onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })} className="border p-2 rounded">
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGER">Manager</option>
+            <option value="RECEPTIONIST">Receptionist</option>
+          </select>
+          <button onClick={handleAddAdmin} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Admin</button>
+        </div>
+        <p className="text-sm text-gray-600">Existing admins: {admins.map((a) => a.username).join(", ") || "None"}</p>
       </section>
 
       {/* Customers */}

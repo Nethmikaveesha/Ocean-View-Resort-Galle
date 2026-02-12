@@ -68,7 +68,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rooms/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/reservations/availability").permitAll()
                         .requestMatchers("/api/reservations/**").hasAnyRole("CUSTOMER", "ADMIN")
-                        .requestMatchers("/api/customers/**").hasRole("ADMIN")
+                        .requestMatchers("/api/customers/**", "/api/admins/**").hasRole("ADMIN")
                         .requestMatchers("/api/bills/**").hasAnyRole("CUSTOMER", "ADMIN")
                         .anyRequest().authenticated()
                 )

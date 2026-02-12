@@ -11,8 +11,7 @@ import CheckAvailability from "./pages/CheckAvailability";
 import About from "./pages/About";
 import Help from "./pages/Help";
 import Login from "./pages/Login";
-import CustomerRegister from "./pages/CustomerRegister";
-import CustomerLogin from "./pages/CustomerLogin";
+import Register from "./pages/Register";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddReservation from "./pages/AddReservation";
@@ -30,8 +29,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/customer-register" element={<CustomerRegister />} />
-            <Route path="/customer-login" element={<CustomerLogin />} />
+            <Route path="/register" element={<Register />} />
 
             {/* Customer Protected Routes */}
             <Route

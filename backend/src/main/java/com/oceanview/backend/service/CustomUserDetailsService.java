@@ -1,6 +1,8 @@
 package com.oceanview.backend.service;
 
+import com.oceanview.backend.model.Admin;
 import com.oceanview.backend.model.User;
+import com.oceanview.backend.repository.AdminRepository;
 import com.oceanview.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,31 +17,34 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
+    private final AdminRepository adminRepository;
     private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        // 🔐 Hardcoded admin user (not stored in DB) - required for JWT validation after login
-        if ("admin".equals(username)) {
-            return org.springframework.security.core.userdetails.User
-                    .withUsername("admin")
-                    .password("{noop}admin123")
-                    .authorities("ROLE_ADMIN")
-                    .build();
+        // 1. Check admins collection (ADMIN, MANAGER, RECEPTIONIST -> ROLE_ADMIN)
+        var adminOpt = adminRepository.findByUsername(username);
+        if (adminOpt.isPresent()) {
+            Admin admin = adminOpt.get();
+            Collection<? extends GrantedAuthority> authorities =
+                    List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            return new org.springframework.security.core.userdetails.User(
+                    admin.getUsername(),
+                    admin.getPasswordHash(),
+                    authorities
+            );
         }
 
-        // 🔎 Find user by username in DB
+        // 2. Check users collection (customers)
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with username: " + username)
                 );
 
-        // 🔐 Convert role to Spring Security format (ROLE_ADMIN / ROLE_CUSTOMER)
         Collection<? extends GrantedAuthority> authorities =
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
 
-        // ✅ Return Spring Security User object
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),

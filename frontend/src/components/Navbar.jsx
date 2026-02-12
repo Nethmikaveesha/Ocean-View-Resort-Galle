@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const userRole = user?.role || localStorage.getItem("userRole");
 
   const handleLogout = () => {
     logout();
@@ -22,17 +23,27 @@ export default function Navbar() {
         <Link to="/about" className="hover:underline">About</Link>
         <Link to="/help" className="hover:underline">Help</Link>
 
-        {(user?.role === "customer" || localStorage.getItem("userRole") === "customer") ? (
+        {userRole === "admin" ? (
+          <>
+            <Link to="/admin-dashboard" className="hover:underline">Admin Dashboard</Link>
+            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">
+              Logout
+            </button>
+          </>
+        ) : userRole === "customer" ? (
           <>
             <Link to="/customer-dashboard" className="hover:underline">Dashboard</Link>
             <Link to="/add-reservation" className="hover:underline">Add Reservation</Link>
-            <Link to="/view-reservation" className="hover:underline">View Reservation</Link>
+            <Link to="/view-reservation" className="hover:underline">My Reservations</Link>
             <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">
               Logout
             </button>
           </>
         ) : (
-          <Link to="/login" className="hover:underline">Admin Login</Link>
+          <>
+            <Link to="/login" className="hover:underline">Login</Link>
+            <Link to="/register" className="hover:underline">Register</Link>
+          </>
         )}
       </div>
     </nav>

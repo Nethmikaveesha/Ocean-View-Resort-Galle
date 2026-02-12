@@ -89,6 +89,15 @@ export const getCustomers = async () => {
   return res.data;
 };
 
+export const getAdmins = async () => {
+  const res = await api.get("/admins");
+  return res.data;
+};
+
+export const addAdmin = async (adminData) => {
+  await api.post("/admins", adminData);
+};
+
 export const getBill = async (reservationNumber) => {
   const res = await api.get(`/bills/${reservationNumber}`, { responseType: "blob" });
   return res.data;

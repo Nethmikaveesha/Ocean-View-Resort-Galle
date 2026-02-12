@@ -76,13 +76,13 @@ export default function CheckAvailability() {
   const handleRegister = () => {
     sessionStorage.setItem("availabilityVerified", "true");
     sessionStorage.setItem("availableDates", JSON.stringify({ checkIn, checkOut }));
-    navigate("/customer-register");
+    navigate("/register");
   };
 
   const handleLogin = () => {
     sessionStorage.setItem("availabilityVerified", "true");
     sessionStorage.setItem("availableDates", JSON.stringify({ checkIn, checkOut }));
-    navigate("/customer-login");
+    navigate("/login");
   };
 
   return (
