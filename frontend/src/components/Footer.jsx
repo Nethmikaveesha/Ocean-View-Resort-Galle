@@ -1,3 +1,4 @@
+// 
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -48,42 +49,116 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-800 text-white mt-16">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left order-2 md:order-1">
-            <h3 className="text-xl font-bold mb-1">Ocean View Resort</h3>
-            <p className="text-slate-300 text-sm">Galle, Sri Lanka</p>
-            <p className="text-slate-400 text-sm mt-1">Luxury stay by the ocean</p>
-            <a href="tel:+943734277" className="inline-flex items-center justify-center md:justify-start gap-2 text-teal-400 hover:text-teal-300 mt-2 transition-colors">
-              {PHONE_ICON}
-              <span>+94 3734277</span>
+    <footer className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white mt-20 overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-gradient-to-tl from-amber-400 to-orange-600 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Wave decoration at top */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
+        <svg className="relative block w-full h-12" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="currentColor" className="text-slate-50 opacity-10"></path>
+        </svg>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6 py-16">
+        <div className="grid md:grid-cols-3 gap-12 mb-12">
+          {/* Brand Section */}
+          <div className="text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl shadow-lg">
+                🌊
+              </div>
+              <h3 className="text-2xl font-serif" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                Ocean View Resort
+              </h3>
+            </div>
+            <p className="text-cyan-200 mb-2">Galle, Sri Lanka</p>
+            <p className="text-slate-400 mb-4">Luxury stay by the ocean</p>
+            <a
+              href="tel:+943734277"
+              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors group"
+            >
+              <span className="w-10 h-10 rounded-full bg-cyan-900/50 flex items-center justify-center group-hover:bg-cyan-800/50 transition-colors">
+                {PHONE_ICON}
+              </span>
+              <span className="font-medium">+94 3734277</span>
             </a>
           </div>
-          <nav className="flex items-center justify-center gap-4 order-1 md:order-2">
-            <Link to="/" className="text-slate-300 hover:text-white transition-colors">Home</Link>
-            <Link to="/about" className="text-slate-300 hover:text-white transition-colors">About</Link>
-            <Link to="/help" className="text-slate-300 hover:text-white transition-colors">Help</Link>
-          </nav>
-          <div className="flex items-center justify-center gap-4 order-3">
+
+          {/* Quick Links */}
+          <div className="text-center">
+            <h4 className="text-lg font-serif mb-6 text-cyan-200" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Quick Links
+            </h4>
+            <nav className="flex flex-col gap-3">
+              <Link
+                to="/"
+                className="text-slate-300 hover:text-cyan-400 transition-colors inline-flex items-center justify-center gap-2 group"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:scale-150 transition-transform"></span>
+                Home
+              </Link>
+              <Link
+                to="/about"
+                className="text-slate-300 hover:text-cyan-400 transition-colors inline-flex items-center justify-center gap-2 group"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:scale-150 transition-transform"></span>
+                About
+              </Link>
+              <Link
+                to="/help"
+                className="text-slate-300 hover:text-cyan-400 transition-colors inline-flex items-center justify-center gap-2 group"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:scale-150 transition-transform"></span>
+                Help
+              </Link>
+            </nav>
+          </div>
+
+          {/* Social Media */}
+          <div className="text-center md:text-right">
+            <h4 className="text-lg font-serif mb-6 text-cyan-200" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Connect With Us
+            </h4>
+            <div className="flex items-center justify-center md:justify-end gap-3">
               {SOCIAL_LINKS.map(({ name, url, icon }) => (
                 <a
                   key={name}
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-700 hover:bg-teal-600 text-white transition-colors"
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-700/50 backdrop-blur-sm hover:bg-gradient-to-br hover:from-cyan-500 hover:to-blue-600 text-white transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-cyan-500/50 border border-slate-600 hover:border-cyan-400"
                   aria-label={name}
                 >
                   {icon}
                 </a>
               ))}
+            </div>
+            <p className="text-slate-400 text-sm mt-6">
+              Follow us for exclusive offers and updates
+            </p>
           </div>
         </div>
-        <div className="border-t border-slate-700 mt-8 pt-6 text-center text-slate-400 text-sm">
-          &copy; {new Date().getFullYear()} Ocean View Resort. All rights reserved.
+
+        {/* Bottom Bar */}
+        <div className="border-t border-slate-700/50 pt-8 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-slate-400 text-sm">
+            <span>&copy; {new Date().getFullYear()} Ocean View Resort.</span>
+            <span className="hidden sm:inline">•</span>
+            <span>All rights reserved.</span>
+            <span className="hidden sm:inline">•</span>
+            <span>Crafted with ❤️ for your perfect getaway</span>
+          </div>
         </div>
       </div>
+
+      {/* Global Styles */}
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+      `}</style>
     </footer>
   );
 }
