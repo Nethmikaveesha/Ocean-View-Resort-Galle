@@ -24,12 +24,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        // 1. Check admins collection (ADMIN, MANAGER, RECEPTIONIST -> ROLE_ADMIN)
+        // 1. Check admins collection - return actual role (ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST)
         var adminOpt = adminRepository.findByUsername(username);
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();
-            Collection<? extends GrantedAuthority> authorities =
-                    List.of(new SimpleGrantedAuthority(Roles.ROLE_ADMIN));
+            String dbRole = admin.getRole() != null ? admin.getRole().toUpperCase() : Roles.ADMIN;
+            String authority = switch (dbRole) {
+                case Roles.MANAGER -> Roles.ROLE_MANAGER;
+                case Roles.RECEPTIONIST -> Roles.ROLE_RECEPTIONIST;
+                default -> Roles.ROLE_ADMIN;
+            };
+            Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
             return new org.springframework.security.core.userdetails.User(
                     admin.getUsername(),
                     admin.getPasswordHash(),

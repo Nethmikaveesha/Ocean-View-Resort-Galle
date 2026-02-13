@@ -11,8 +11,9 @@ export default function Help() {
           <li><strong>Customer Flow:</strong> Customers must first check room availability on the home page. Only if rooms are available can they register and log in to make a reservation.</li>
           <li><strong>Add Reservation:</strong> Guest name, address, contact number, room type, check-in (today only), check-out (future), and times in AM/PM format are required. The system auto-generates a reservation number and calculates the bill.</li>
           <li><strong>View/Update/Delete:</strong> Logged-in customers can view, update, or delete their own reservations from the View Reservation page. They can also download their bill as PDF.</li>
-          <li><strong>Admin Access:</strong> Log in with username <code className="bg-gray-100 px-1">admin</code> and password <code className="bg-gray-100 px-1">admin123</code>. No registration required.</li>
-          <li><strong>Admin Tasks:</strong> Add rooms (with optional image), add reservations for walk-in customers, manage customers, and view all reservations.</li>
+          <li><strong>Admin Access:</strong> Log in with username <code className="bg-gray-100 px-1">admin</code> and password <code className="bg-gray-100 px-1">admin123</code>. Admins can create managers and receptionists, manage all admins, and perform all operations.</li>
+          <li><strong>Manager:</strong> Can add/update/delete rooms, create and cancel reservations, view customers. Cannot create or delete admins.</li>
+          <li><strong>Receptionist:</strong> Can create walk-in reservations, view reservations and rooms, check availability. Cannot add/delete rooms or view customer list.</li>
           <li><strong>Exit:</strong> Users can safely close the application or log out at any time.</li>
         </ul>
       </section>

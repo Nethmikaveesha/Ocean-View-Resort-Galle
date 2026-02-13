@@ -35,6 +35,15 @@ public class AdminController {
 
     public record AdminSummary(String id, String username, String role) {}
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAdmin(@PathVariable String id) {
+        if (!adminRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        adminRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "Admin deleted"));
+    }
+
     @PostMapping
     public ResponseEntity<?> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
         if (adminRepository.findByUsername(request.getUsername()).isPresent()) {

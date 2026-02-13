@@ -98,6 +98,10 @@ export const addAdmin = async (adminData) => {
   await api.post("/admins", adminData);
 };
 
+export const deleteAdmin = async (id) => {
+  await api.delete(`/admins/${id}`);
+};
+
 export const getBill = async (reservationNumber) => {
   const res = await api.get(`/bills/${reservationNumber}`, { responseType: "blob" });
   return res.data;

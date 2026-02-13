@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ROLE_ADMIN, ROLE_CUSTOMER } from "./constants/roles";
+import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST, ROLE_CUSTOMER } from "./constants/roles";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -14,6 +14,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ReceptionistDashboard from "./pages/ReceptionistDashboard";
 import AddReservation from "./pages/AddReservation";
 import ViewReservation from "./pages/ViewReservation";
 
@@ -63,6 +65,22 @@ function App() {
               element={
                 <ProtectedRoute role={ROLE_ADMIN}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/manager-dashboard"
+              element={
+                <ProtectedRoute role={ROLE_MANAGER}>
+                  <ManagerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/receptionist-dashboard"
+              element={
+                <ProtectedRoute role={ROLE_RECEPTIONIST}>
+                  <ReceptionistDashboard />
                 </ProtectedRoute>
               }
             />

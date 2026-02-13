@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRooms, getReservations, getCustomers, getAdmins, addRoom, addAdmin, deleteAdmin, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
+import { getRooms, getReservations, getCustomers, addRoom, updateRoom, deleteRoom, addReservation, deleteReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
-
-import { ROLE_ADMIN, ADMIN_ROLE_OPTIONS, ADMIN_SUBROLES } from "../constants/roles";
+import { ROLE_MANAGER } from "../constants/roles";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
-export default function AdminDashboard() {
+export default function ManagerDashboard() {
   const navigate = useNavigate();
   const { logout } = React.useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [admins, setAdmins] = useState([]);
-  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: ADMIN_SUBROLES.RECEPTIONIST });
   const [newRoom, setNewRoom] = useState({ type: "Single", price: 10000, imageBase64: "" });
+  const [editingRoom, setEditingRoom] = useState(null);
   const [addResModal, setAddResModal] = useState(false);
   const [newRes, setNewRes] = useState({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
   const [availableRoomsForRes, setAvailableRoomsForRes] = useState([]);
@@ -25,11 +23,10 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [r, res, c, a] = await Promise.all([getRooms(), getReservations(), getCustomers(), getAdmins().catch(() => [])]);
+      const [r, res, c] = await Promise.all([getRooms(), getReservations(), getCustomers()]);
       setRooms(r || []);
       setReservations(res || []);
       setCustomers(c || []);
-      setAdmins(a || []);
     } catch (err) {
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         localStorage.removeItem("token");
@@ -44,7 +41,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("userRole") === ROLE_ADMIN && !localStorage.getItem("token")) {
+    if (localStorage.getItem("userRole") !== ROLE_MANAGER || !localStorage.getItem("token")) {
       navigate("/login");
       return;
     }
@@ -64,11 +61,6 @@ export default function AdminDashboard() {
       alert("Type and price are required.");
       return;
     }
-    if (!localStorage.getItem("token")) {
-      alert("Session expired. Please log in again as admin.");
-      navigate("/login");
-      return;
-    }
     try {
       await addRoom({
         type: newRoom.type,
@@ -80,16 +72,19 @@ export default function AdminDashboard() {
       setNewRoom({ type: "Single", price: 10000, imageBase64: "" });
       fetchData();
     } catch (err) {
-      const status = err?.response?.status;
-      const msg = err?.response?.data?.message || err?.message;
-      if (status === 403 || status === 401) {
-        alert("Session expired or access denied. Please log in again as admin.");
-        localStorage.removeItem("token");
-        localStorage.removeItem("userRole");
-        navigate("/login");
-      } else {
-        alert("Failed to add room: " + (msg || "Please try again."));
-      }
+      alert("Failed to add room: " + (err?.response?.data?.message || "Try again."));
+    }
+  };
+
+  const handleUpdateRoom = async () => {
+    if (!editingRoom || !editingRoom.price) return;
+    try {
+      await updateRoom(editingRoom.id, { ...editingRoom, price: Number(editingRoom.price) });
+      alert("Room updated!");
+      setEditingRoom(null);
+      fetchData();
+    } catch (err) {
+      alert("Failed to update: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -104,52 +99,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCancelReservation = async (resv) => {
+    if (!window.confirm(`Cancel reservation ${resv.reservationNumber}?`)) return;
+    try {
+      await deleteReservation(resv.reservationNumber);
+      alert("Reservation cancelled.");
+      fetchData();
+    } catch (err) {
+      alert("Failed to cancel: " + (err?.response?.data?.message || "Try again."));
+    }
+  };
+
   const handleAddReservation = async () => {
     if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
       alert("Please fill guest name, dates, and select a room.");
       return;
     }
     try {
-      await addReservation({
-        ...newRes,
-        customerUsername: null,
-      });
+      await addReservation({ ...newRes, customerUsername: null });
       alert("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      alert("Failed to add reservation: " + (err?.response?.data?.message || "Try again."));
-    }
-  };
-
-  const handleDeleteAdmin = async (adminToDelete) => {
-    if (adminToDelete.username === localStorage.getItem("username")) {
-      alert("You cannot delete yourself.");
-      return;
-    }
-    if (!window.confirm(`Delete admin "${adminToDelete.username}"?`)) return;
-    try {
-      await deleteAdmin(adminToDelete.id);
-      alert("Admin deleted.");
-      fetchData();
-    } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Cannot delete."));
-    }
-  };
-
-  const handleAddAdmin = async () => {
-    if (!newAdmin.username || !newAdmin.password || newAdmin.password.length < 6) {
-      alert("Username and password (min 6 chars) required.");
-      return;
-    }
-    try {
-      await addAdmin(newAdmin);
-      alert("Admin created successfully!");
-      setNewAdmin({ username: "", password: "", role: ADMIN_SUBROLES.RECEPTIONIST });
-      fetchData();
-    } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Username may already exist."));
+      alert("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -175,7 +148,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-6">👔 Manager Dashboard</h2>
+      <p className="text-sm text-gray-600 mb-6">Manage rooms, reservations, and view customers.</p>
 
       {/* Add Room */}
       <section className="mb-8 p-4 border rounded bg-gray-50">
@@ -190,16 +164,29 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      {/* Rooms */}
+      {/* Rooms with Update/Delete */}
       <section className="mb-8">
         <h3 className="font-semibold mb-2">Rooms</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rooms.map((room) => (
             <div key={room.id} className="border rounded p-4 bg-white">
               {room.imageBase64 && <img src={room.imageBase64} alt={room.type} className="w-full h-32 object-cover rounded mb-2" />}
-              <p className="font-medium">{room.type} - LKR {room.price}</p>
-              <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
-              <button onClick={() => handleDeleteRoom(room.id)} className="mt-2 text-red-600 text-sm">Delete</button>
+              {editingRoom?.id === room.id ? (
+                <div>
+                  <input type="number" value={editingRoom.price} onChange={(e) => setEditingRoom({ ...editingRoom, price: e.target.value })} className="border p-2 w-full rounded mb-2" />
+                  <button onClick={handleUpdateRoom} className="text-green-600 text-sm mr-2">Save</button>
+                  <button onClick={() => setEditingRoom(null)} className="text-gray-600 text-sm">Cancel</button>
+                </div>
+              ) : (
+                <>
+                  <p className="font-medium">{room.type} - LKR {room.price}</p>
+                  <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
+                  <div className="mt-2 flex gap-2">
+                    <button onClick={() => setEditingRoom({ ...room })} className="text-blue-600 text-sm">Update price</button>
+                    <button onClick={() => handleDeleteRoom(room.id)} className="text-red-600 text-sm">Delete</button>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -228,8 +215,8 @@ export default function AdminDashboard() {
                     ))}
                   </select>
                 </div>
-                <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} placeholder="Check-in" className="border p-2 w-full rounded" />
-                <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} placeholder="Check-out" className="border p-2 w-full rounded" />
+                <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} className="border p-2 w-full rounded" />
+                <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} className="border p-2 w-full rounded" />
                 <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded">
                   {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -251,34 +238,11 @@ export default function AdminDashboard() {
         <h3 className="font-semibold mb-2">Reservations</h3>
         <ul className="border rounded divide-y max-h-48 overflow-y-auto">
           {reservations.map((resv) => (
-            <li key={resv.reservationNumber} className="p-3">
-              {resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.totalBill}
+            <li key={resv.reservationNumber} className="p-3 flex justify-between items-center">
+              <span>{resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.totalBill}</span>
+              <button onClick={() => handleCancelReservation(resv)} className="text-red-600 text-sm hover:underline">Cancel</button>
             </li>
           ))}
-        </ul>
-      </section>
-
-      {/* Manage Admins */}
-      <section className="mb-8 p-4 border rounded bg-gray-50">
-        <h3 className="font-semibold mb-3">Add New Admin</h3>
-        <div className="flex flex-wrap gap-3 items-end mb-4">
-          <input placeholder="Username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="border p-2 rounded" />
-          <input type="password" placeholder="Password (min 6)" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="border p-2 rounded" />
-          <select value={newAdmin.role} onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })} className="border p-2 rounded">
-            {ADMIN_ROLE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <button onClick={handleAddAdmin} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Admin</button>
-        </div>
-        <ul className="text-sm text-gray-600 space-y-1 mt-2">
-          {admins.map((a) => (
-            <li key={a.id} className="flex justify-between items-center">
-              <span>{a.username} ({a.role})</span>
-              <button onClick={() => handleDeleteAdmin(a)} className="text-red-600 text-xs hover:underline">Delete</button>
-            </li>
-          ))}
-          {admins.length === 0 && <li>None</li>}
         </ul>
       </section>
 
@@ -294,15 +258,8 @@ export default function AdminDashboard() {
         </ul>
       </section>
 
-      {/* Admin Logout - only at bottom of dashboard */}
       <section className="pt-8 border-t mt-8">
-        <button
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
-          className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-        >
+        <button onClick={() => { logout(); navigate("/login"); }} className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
           Logout
         </button>
       </section>

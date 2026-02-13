@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { loginUser } from "../Services/authService";
-import { ROLE_ADMIN } from "../constants/roles";
+import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST } from "../constants/roles";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,6 +16,8 @@ export default function Login() {
     const role = localStorage.getItem("userRole");
     if (token && role) {
       if (role === ROLE_ADMIN) navigate("/admin-dashboard", { replace: true });
+      else if (role === ROLE_MANAGER) navigate("/manager-dashboard", { replace: true });
+      else if (role === ROLE_RECEPTIONIST) navigate("/receptionist-dashboard", { replace: true });
       else navigate("/customer-dashboard", { replace: true });
     }
   }, [navigate]);
@@ -31,9 +33,10 @@ export default function Login() {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("username", username);
         login({ role, username });
-        if (role === ROLE_ADMIN) {
-          navigate("/admin-dashboard");
-        } else {
+        if (role === ROLE_ADMIN) navigate("/admin-dashboard");
+        else if (role === ROLE_MANAGER) navigate("/manager-dashboard");
+        else if (role === ROLE_RECEPTIONIST) navigate("/receptionist-dashboard");
+        else {
           const fromCheck = sessionStorage.getItem("availabilityVerified");
           navigate(fromCheck ? "/add-reservation" : "/customer-dashboard");
         }
