@@ -5,23 +5,50 @@ import { addReservation, getAvailableRoomsForDates, getBill } from "../Services/
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
+function getInitialValuesFromSession() {
+  const today = new Date().toISOString().split("T")[0];
+  const availableDates = sessionStorage.getItem("availableDates");
+  const selectedRoom = sessionStorage.getItem("selectedRoom");
+  let checkIn = today;
+  let checkOut = "";
+  let checkInTime = "12:00 PM";
+  let roomType = "Single";
+  let roomId = "";
+  if (availableDates) {
+    try {
+      const parsed = JSON.parse(availableDates);
+      if (parsed.checkIn) checkIn = parsed.checkIn;
+      if (parsed.checkOut) checkOut = parsed.checkOut;
+      if (parsed.checkInTime) checkInTime = parsed.checkInTime;
+    } catch (_) {}
+  }
+  if (selectedRoom) {
+    try {
+      const parsed = JSON.parse(selectedRoom);
+      if (parsed.type) roomType = parsed.type;
+      if (parsed.id) roomId = parsed.id;
+    } catch (_) {}
+  }
+  return { checkIn, checkOut, checkInTime, roomType, roomId };
+}
+
 export default function AddReservation() {
   const [availableRooms, setAvailableRooms] = useState([]);
   const [previewBill, setPreviewBill] = useState(0);
   const username = localStorage.getItem("username") || "";
-
   const today = new Date().toISOString().split("T")[0];
+  const sessionData = getInitialValuesFromSession();
 
   const formik = useFormik({
     initialValues: {
       guestName: "",
       address: "",
       contactNumber: "",
-      roomType: "Single",
-      roomId: "",
-      checkIn: today,
-      checkOut: "",
-      checkInTime: "12:00 PM",
+      roomType: sessionData.roomType,
+      roomId: sessionData.roomId,
+      checkIn: sessionData.checkIn,
+      checkOut: sessionData.checkOut,
+      checkInTime: sessionData.checkInTime,
       checkOutTime: "11:00 AM",
     },
     validationSchema: Yup.object({
@@ -51,6 +78,7 @@ export default function AddReservation() {
         const saved = await addReservation(data);
         sessionStorage.removeItem("availabilityVerified");
         sessionStorage.removeItem("availableDates");
+        sessionStorage.removeItem("selectedRoom");
         if (saved?.reservationNumber) {
           try {
             const blob = await getBill(saved.reservationNumber);
