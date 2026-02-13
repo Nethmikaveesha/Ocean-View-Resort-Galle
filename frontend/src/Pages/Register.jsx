@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -6,6 +6,12 @@ import api from "../Services/api";
 
 export default function Register() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("availabilityVerified") || !sessionStorage.getItem("selectedRoom")) {
+      navigate("/check", { replace: true });
+    }
+  }, [navigate]);
 
   const formik = useFormik({
     initialValues: {

@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { loginUser } from "../Services/authService";
 import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST } from "../constants/roles";
@@ -11,6 +11,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
 
+  const fromCheckAvailability = () => sessionStorage.getItem("availabilityVerified") && sessionStorage.getItem("selectedRoom");
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("userRole");
@@ -18,7 +20,7 @@ export default function Login() {
       if (role === ROLE_ADMIN) navigate("/admin-dashboard", { replace: true });
       else if (role === ROLE_MANAGER) navigate("/manager-dashboard", { replace: true });
       else if (role === ROLE_RECEPTIONIST) navigate("/receptionist-dashboard", { replace: true });
-      else navigate("/customer-dashboard", { replace: true });
+      else if (role === "customer") navigate("/customer-dashboard", { replace: true });
     }
   }, [navigate]);
 
@@ -29,6 +31,11 @@ export default function Login() {
       const res = await loginUser({ username, password });
       if (res.data?.token) {
         const role = (res.data?.role || "").toLowerCase();
+        // Staff-only when accessed from navbar (no Check Availability flow). Customers must come from Check Availability.
+        if (role === "customer" && !fromCheckAvailability()) {
+          setError("Customers must use Check Availability, select a room, then log in from that page.");
+          return;
+        }
         localStorage.setItem("userRole", role);
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("username", username);
@@ -36,10 +43,7 @@ export default function Login() {
         if (role === ROLE_ADMIN) navigate("/admin-dashboard");
         else if (role === ROLE_MANAGER) navigate("/manager-dashboard");
         else if (role === ROLE_RECEPTIONIST) navigate("/receptionist-dashboard");
-        else {
-          const fromCheck = sessionStorage.getItem("availabilityVerified");
-          navigate(fromCheck ? "/add-reservation" : "/customer-dashboard");
-        }
+        else navigate("/add-reservation");
       } else {
         setError("Invalid credentials");
       }
@@ -51,9 +55,11 @@ export default function Login() {
 
   return (
     <div className="max-w-md mx-auto p-8 mt-10 border rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">{fromCheckAvailability() ? "Customer Login" : "Staff Login"}</h2>
       <p className="text-sm text-gray-600 mb-4">
-        Admin or customer? Use your username and password to sign in.
+        {fromCheckAvailability()
+          ? "Log in to complete your reservation with your selected room."
+          : "Admin, Manager, or Receptionist only. Customers must use Check Availability to register and log in."}
       </p>
       {error && <p className="text-red-500 mb-2">{error}</p>}
       <form onSubmit={handleSubmit}>
@@ -76,9 +82,6 @@ export default function Login() {
         <button type="submit" className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700">
           Login
         </button>
-        <p className="mt-3 text-sm text-gray-600">
-          New customer? <Link to="/register" className="text-blue-600 underline">Register here</Link>
-        </p>
       </form>
     </div>
   );
