@@ -2,15 +2,25 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getRooms, getReservations, addReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
+import StaffDashboardLayout, { MetricCard } from "../components/StaffDashboardLayout";
 import { ROLE_RECEPTIONIST } from "../constants/roles";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
+const RECEPTIONIST_NAV = [
+  { id: "dashboard", label: "Dashboard", icon: "📊" },
+  { id: "walk-in", label: "Walk-in Reservation", icon: "📝" },
+  { id: "reservations", label: "View Reservations", icon: "📅" },
+  { id: "availability", label: "Check Availability", icon: "✓" },
+  { id: "rooms", label: "View Rooms", icon: "🛏️" },
+];
+
 export default function ReceptionistDashboard() {
   const navigate = useNavigate();
   const { logout } = React.useContext(AuthContext);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState("dashboard");
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [addResModal, setAddResModal] = useState(false);
@@ -69,11 +79,18 @@ export default function ReceptionistDashboard() {
       .catch(() => setAvailableRoomsForRes([]));
   }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
 
+  const todayCheckIns = reservations.filter((r) => r.checkIn === today).length;
+  const availableRooms = rooms.filter((r) => r.available !== false).length;
+  const occupiedRooms = reservations.filter((r) => {
+    const todayDate = new Date().toISOString().split("T")[0];
+    return r.checkIn <= todayDate && r.checkOut >= todayDate;
+  }).length;
+
   if (loading && rooms.length === 0 && reservations.length === 0) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[200px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
+          <div className="inline-block w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -81,88 +98,102 @@ export default function ReceptionistDashboard() {
   }
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6">🧑‍💼 Receptionist Dashboard</h2>
-      <p className="text-sm text-gray-600 mb-6">Create reservations, view rooms and bookings. Check availability via the link below.</p>
+    <StaffDashboardLayout
+      roleLabel="RECEPTIONIST"
+      badgeColor="bg-emerald-500"
+      navItems={RECEPTIONIST_NAV}
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      headerTitle="Receptionist Dashboard"
+      headerSubtitle={localStorage.getItem("username") || "Receptionist User"}
+      headerDescription="Front desk operations"
+    >
+      {activeSection === "dashboard" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <MetricCard icon="📅" label="Today's Check-ins" value={todayCheckIns} iconBg="bg-blue-500" />
+          <MetricCard icon="✓" label="Available Rooms" value={availableRooms} iconBg="bg-emerald-500" />
+          <MetricCard icon="🛏️" label="Occupied Rooms" value={occupiedRooms} iconBg="bg-pink-500" />
+        </div>
+      )}
 
-      {/* Check Availability */}
-      <section className="mb-8 p-4 border rounded bg-blue-50">
-        <h3 className="font-semibold mb-2">Check Availability</h3>
-        <Link to="/check" className="text-blue-600 underline font-medium">Go to Check Availability →</Link>
-      </section>
+      {(activeSection === "walk-in" || activeSection === "reservations") && (
+        <section className="mb-8">
+          <button onClick={() => setAddResModal(true)} className="mb-6 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700">Create Walk-in Reservation</button>
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Reservations</h2>
+            <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto rounded-lg border border-gray-100">
+              {reservations.map((resv) => (
+                <li key={resv.reservationNumber} className="p-4 hover:bg-gray-50">
+                  <span className="font-medium">{resv.guestName}</span> — {resv.roomType} | {resv.checkIn} to {resv.checkOut} | LKR {resv.totalBill?.toLocaleString()}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
-      {/* Add Reservation (walk-in) */}
-      <section className="mb-8">
-        <button onClick={() => setAddResModal(true)} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mb-4">Create Reservation (Walk-in)</button>
-        {addResModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <h3 className="font-semibold mb-4">Add Reservation for Walk-in Customer</h3>
-              <div className="space-y-2">
-                <input placeholder="Guest Name" value={newRes.guestName} onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })} className="border p-2 w-full rounded" />
-                <input placeholder="Address" value={newRes.address} onChange={(e) => setNewRes({ ...newRes, address: e.target.value })} className="border p-2 w-full rounded" />
-                <input placeholder="Contact Number" value={newRes.contactNumber} onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })} className="border p-2 w-full rounded" />
-                <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })} className="border p-2 w-full rounded">
-                  {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <div>
-                  <label className="text-sm">Select Room</label>
-                  <select value={newRes.roomId} onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })} className="border p-2 w-full rounded">
-                    <option value="">-- Select room --</option>
-                    {availableRoomsForRes.map((room) => (
-                      <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
-                    ))}
-                  </select>
+      {activeSection === "availability" && (
+        <section className="mb-8">
+          <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-2">Check Availability</h2>
+            <p className="text-gray-600 mb-4">Select your dates and room type to see which rooms are available.</p>
+            <Link to="/check" className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium">
+              <span>✓</span> Go to Check Availability
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "rooms" && (
+        <section className="mb-8">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Rooms (View Only)</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {rooms.map((room) => (
+                <div key={room.id} className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                  {room.imageBase64 && <img src={room.imageBase64} alt={room.type} className="w-full h-32 object-cover rounded-lg mb-3" />}
+                  <p className="font-semibold">{room.type} - LKR {room.price?.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
                 </div>
-                <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} className="border p-2 w-full rounded" />
-                <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} className="border p-2 w-full rounded" />
-                <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded">
-                  {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <select value={newRes.checkOutTime} onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })} className="border p-2 w-full rounded">
-                  {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <button onClick={handleAddReservation} className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-                <button onClick={() => setAddResModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-              </div>
+              ))}
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* Reservations */}
-      <section className="mb-8">
-        <h3 className="font-semibold mb-2">Reservations</h3>
-        <ul className="border rounded divide-y max-h-48 overflow-y-auto">
-          {reservations.map((resv) => (
-            <li key={resv.reservationNumber} className="p-3">
-              {resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.totalBill}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Rooms (view only) */}
-      <section className="mb-8">
-        <h3 className="font-semibold mb-2">Rooms</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rooms.map((room) => (
-            <div key={room.id} className="border rounded p-4 bg-white">
-              {room.imageBase64 && <img src={room.imageBase64} alt={room.type} className="w-full h-32 object-cover rounded mb-2" />}
-              <p className="font-medium">{room.type} - LKR {room.price}</p>
-              <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
+      {addResModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            <h3 className="font-bold text-lg mb-4">Add Walk-in Reservation</h3>
+            <div className="space-y-3">
+              <input placeholder="Guest Name" value={newRes.guestName} onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <input placeholder="Address" value={newRes.address} onChange={(e) => setNewRes({ ...newRes, address: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <input placeholder="Contact" value={newRes.contactNumber} onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })} className="border p-2 w-full rounded-lg">
+                {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select value={newRes.roomId} onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })} className="border p-2 w-full rounded-lg">
+                <option value="">Select room</option>
+                {availableRoomsForRes.map((room) => (
+                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
+                ))}
+              </select>
+              <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded-lg">
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select value={newRes.checkOutTime} onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })} className="border p-2 w-full rounded-lg">
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
-          ))}
+            <div className="mt-6 flex gap-3">
+              <button onClick={handleAddReservation} className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Save</button>
+              <button onClick={() => setAddResModal(false)} className="flex-1 bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500">Cancel</button>
+            </div>
+          </div>
         </div>
-      </section>
-
-      <section className="pt-8 border-t mt-8">
-        <button onClick={() => { logout(); navigate("/login"); }} className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
-          Logout
-        </button>
-      </section>
-    </div>
+      )}
+    </StaffDashboardLayout>
   );
 }

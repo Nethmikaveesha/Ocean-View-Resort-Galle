@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST, ROLE_CUSTOMER } from "./constants/roles";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
@@ -19,13 +19,17 @@ import ReceptionistDashboard from "./pages/ReceptionistDashboard";
 import AddReservation from "./pages/AddReservation";
 import ViewReservation from "./pages/ViewReservation";
 
-function App() {
+const STAFF_DASHBOARD_PATHS = ["/admin-dashboard", "/manager-dashboard", "/receptionist-dashboard"];
+
+function AppContent() {
+  const location = useLocation();
+  const isStaffDashboard = STAFF_DASHBOARD_PATHS.some((p) => location.pathname.startsWith(p));
+
   return (
-    <AuthProvider>
-      <Router>
-        <Navbar />
-        <div className="p-4">
-          <Routes>
+    <>
+      {!isStaffDashboard && <Navbar />}
+      <div className={isStaffDashboard ? "" : "p-4"}>
+        <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/check" element={<CheckAvailability />} />
             <Route path="/about" element={<About />} />
@@ -84,8 +88,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </div>
+        </Routes>
+      </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
       </Router>
     </AuthProvider>
   );

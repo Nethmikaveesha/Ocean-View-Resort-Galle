@@ -2,16 +2,25 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRooms, getReservations, getCustomers, getAdmins, addRoom, addAdmin, deleteAdmin, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
-
+import StaffDashboardLayout, { MetricCard } from "../components/StaffDashboardLayout";
 import { ROLE_ADMIN, ADMIN_ROLE_OPTIONS, ADMIN_SUBROLES } from "../constants/roles";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
+const ADMIN_NAV = [
+  { id: "dashboard", label: "Dashboard", icon: "📊" },
+  { id: "manage-admins", label: "Manage Admins", icon: "👥" },
+  { id: "rooms", label: "View Rooms", icon: "🛏️" },
+  { id: "reservations", label: "View Reservations", icon: "📅" },
+  { id: "customers", label: "View Customers", icon: "👤" },
+];
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = React.useContext(AuthContext);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState("dashboard");
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -64,32 +73,13 @@ export default function AdminDashboard() {
       alert("Type and price are required.");
       return;
     }
-    if (!localStorage.getItem("token")) {
-      alert("Session expired. Please log in again as admin.");
-      navigate("/login");
-      return;
-    }
     try {
-      await addRoom({
-        type: newRoom.type,
-        price: Number(newRoom.price),
-        imageBase64: newRoom.imageBase64 || undefined,
-        available: true,
-      });
+      await addRoom({ type: newRoom.type, price: Number(newRoom.price), imageBase64: newRoom.imageBase64 || undefined, available: true });
       alert("Room added successfully!");
       setNewRoom({ type: "Single", price: 10000, imageBase64: "" });
       fetchData();
     } catch (err) {
-      const status = err?.response?.status;
-      const msg = err?.response?.data?.message || err?.message;
-      if (status === 403 || status === 401) {
-        alert("Session expired or access denied. Please log in again as admin.");
-        localStorage.removeItem("token");
-        localStorage.removeItem("userRole");
-        navigate("/login");
-      } else {
-        alert("Failed to add room: " + (msg || "Please try again."));
-      }
+      alert("Failed to add room: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -110,16 +100,13 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      await addReservation({
-        ...newRes,
-        customerUsername: null,
-      });
+      await addReservation({ ...newRes, customerUsername: null });
       alert("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      alert("Failed to add reservation: " + (err?.response?.data?.message || "Try again."));
+      alert("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -162,11 +149,15 @@ export default function AdminDashboard() {
       .catch(() => setAvailableRoomsForRes([]));
   }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
 
+  const staffCount = admins.length;
+  const todayDate = new Date().toISOString().split("T")[0];
+  const activeReservations = reservations.filter((r) => r.checkIn <= todayDate && r.checkOut >= todayDate).length;
+
   if (loading && rooms.length === 0 && reservations.length === 0) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[200px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
+          <div className="inline-block w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -174,138 +165,139 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
-
-      {/* Add Room */}
-      <section className="mb-8 p-4 border rounded bg-gray-50">
-        <h3 className="font-semibold mb-3">Add New Room</h3>
-        <div className="flex flex-wrap gap-3 items-end">
-          <select value={newRoom.type} onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })} className="border p-2 rounded">
-            {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <input type="number" placeholder="Price (LKR)" value={newRoom.price} onChange={(e) => setNewRoom({ ...newRoom, price: e.target.value })} className="border p-2 rounded" />
-          <input type="file" accept="image/*" onChange={handleImageChange} className="border p-2 rounded" />
-          <button onClick={handleAddRoom} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Room</button>
+    <StaffDashboardLayout
+      roleLabel="ADMIN"
+      badgeColor="bg-pink-500"
+      navItems={ADMIN_NAV}
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      headerTitle="Admin Dashboard"
+      headerSubtitle={localStorage.getItem("username") || "Admin User"}
+      headerDescription="Full system access"
+    >
+      {activeSection === "dashboard" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <MetricCard icon="👥" label="Total Staff" value={staffCount} iconBg="bg-purple-500" />
+          <MetricCard icon="🛏️" label="Total Rooms" value={rooms.length} iconBg="bg-pink-500" />
+          <MetricCard icon="📅" label="Active Reservations" value={activeReservations} iconBg="bg-blue-500" />
         </div>
-      </section>
+      )}
 
-      {/* Rooms */}
-      <section className="mb-8">
-        <h3 className="font-semibold mb-2">Rooms</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rooms.map((room) => (
-            <div key={room.id} className="border rounded p-4 bg-white">
-              {room.imageBase64 && <img src={room.imageBase64} alt={room.type} className="w-full h-32 object-cover rounded mb-2" />}
-              <p className="font-medium">{room.type} - LKR {room.price}</p>
-              <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
-              <button onClick={() => handleDeleteRoom(room.id)} className="mt-2 text-red-600 text-sm">Delete</button>
+      {activeSection === "manage-admins" && (
+        <section className="mb-8">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Manage Admins</h2>
+            <div className="flex flex-wrap gap-3 items-end mb-6">
+              <input placeholder="Username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="border p-2 rounded-lg" />
+              <input type="password" placeholder="Password (min 6)" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="border p-2 rounded-lg" />
+              <select value={newAdmin.role} onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })} className="border p-2 rounded-lg">
+                {ADMIN_ROLE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+              <button onClick={handleAddAdmin} className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600">Add Admin</button>
             </div>
-          ))}
-        </div>
-      </section>
+            <ul className="space-y-2">
+              {admins.map((a) => (
+                <li key={a.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                  <span>{a.username} ({a.role})</span>
+                  <button onClick={() => handleDeleteAdmin(a)} className="text-red-600 text-sm hover:underline">Delete</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
-      {/* Add Reservation (walk-in) */}
-      <section className="mb-8">
-        <button onClick={() => setAddResModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">Add Reservation (Walk-in)</button>
-        {addResModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <h3 className="font-semibold mb-4">Add Reservation for Walk-in Customer</h3>
-              <div className="space-y-2">
-                <input placeholder="Guest Name" value={newRes.guestName} onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })} className="border p-2 w-full rounded" />
-                <input placeholder="Address" value={newRes.address} onChange={(e) => setNewRes({ ...newRes, address: e.target.value })} className="border p-2 w-full rounded" />
-                <input placeholder="Contact Number" value={newRes.contactNumber} onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })} className="border p-2 w-full rounded" />
-                <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })} className="border p-2 w-full rounded">
-                  {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <div>
-                  <label className="text-sm">Select Room</label>
-                  <select value={newRes.roomId} onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })} className="border p-2 w-full rounded">
-                    <option value="">-- Select room --</option>
-                    {availableRoomsForRes.map((room) => (
-                      <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
-                    ))}
-                  </select>
-                </div>
-                <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} placeholder="Check-in" className="border p-2 w-full rounded" />
-                <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} placeholder="Check-out" className="border p-2 w-full rounded" />
-                <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded">
-                  {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <select value={newRes.checkOutTime} onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })} className="border p-2 w-full rounded">
-                  {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <button onClick={handleAddReservation} className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-                <button onClick={() => setAddResModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-              </div>
+      {activeSection === "rooms" && (
+        <section className="mb-8">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm mb-6">
+            <h2 className="text-xl font-bold mb-4">Add New Room</h2>
+            <div className="flex flex-wrap gap-3 items-end">
+              <select value={newRoom.type} onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })} className="border p-2 rounded-lg">
+                {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <input type="number" placeholder="Price (LKR)" value={newRoom.price} onChange={(e) => setNewRoom({ ...newRoom, price: e.target.value })} className="border p-2 rounded-lg" />
+              <input type="file" accept="image/*" onChange={handleImageChange} className="border p-2 rounded-lg" />
+              <button onClick={handleAddRoom} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Add Room</button>
             </div>
           </div>
-        )}
-      </section>
-
-      {/* Reservations */}
-      <section className="mb-8">
-        <h3 className="font-semibold mb-2">Reservations</h3>
-        <ul className="border rounded divide-y max-h-48 overflow-y-auto">
-          {reservations.map((resv) => (
-            <li key={resv.reservationNumber} className="p-3">
-              {resv.guestName} - {resv.roomType} - {resv.checkIn} to {resv.checkOut} - LKR {resv.totalBill}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Manage Admins */}
-      <section className="mb-8 p-4 border rounded bg-gray-50">
-        <h3 className="font-semibold mb-3">Add New Admin</h3>
-        <div className="flex flex-wrap gap-3 items-end mb-4">
-          <input placeholder="Username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="border p-2 rounded" />
-          <input type="password" placeholder="Password (min 6)" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="border p-2 rounded" />
-          <select value={newAdmin.role} onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })} className="border p-2 rounded">
-            {ADMIN_ROLE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rooms.map((room) => (
+              <div key={room.id} className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                {room.imageBase64 && <img src={room.imageBase64} alt={room.type} className="w-full h-32 object-cover rounded-lg mb-3" />}
+                <p className="font-semibold">{room.type} - LKR {room.price?.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">#{room.roomNumber || room.id}</p>
+                <button onClick={() => handleDeleteRoom(room.id)} className="mt-2 text-red-600 text-sm hover:underline">Delete</button>
+              </div>
             ))}
-          </select>
-          <button onClick={handleAddAdmin} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Admin</button>
+          </div>
+          <button onClick={() => setAddResModal(true)} className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add Walk-in Reservation</button>
+        </section>
+      )}
+
+      {activeSection === "reservations" && (
+        <section className="mb-8">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Reservations</h2>
+            <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto rounded-lg border border-gray-100">
+              {reservations.map((resv) => (
+                <li key={resv.reservationNumber} className="p-4 hover:bg-gray-50">
+                  <span className="font-medium">{resv.guestName}</span> — {resv.roomType} | {resv.checkIn} to {resv.checkOut} | LKR {resv.totalBill?.toLocaleString()}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "customers" && (
+        <section className="mb-8">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Customers</h2>
+            <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto rounded-lg border border-gray-100">
+              {customers.map((cust) => (
+                <li key={cust.id} className="p-4 hover:bg-gray-50">
+                  {cust.name || cust.username} — {cust.username} — {cust.contactNumber || "N/A"}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* Walk-in Reservation Modal */}
+      {addResModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            <h3 className="font-bold text-lg mb-4">Add Walk-in Reservation</h3>
+            <div className="space-y-3">
+              <input placeholder="Guest Name" value={newRes.guestName} onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <input placeholder="Address" value={newRes.address} onChange={(e) => setNewRes({ ...newRes, address: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <input placeholder="Contact" value={newRes.contactNumber} onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <select value={newRes.roomType} onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })} className="border p-2 w-full rounded-lg">
+                {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select value={newRes.roomId} onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })} className="border p-2 w-full rounded-lg">
+                <option value="">Select room</option>
+                {availableRoomsForRes.map((room) => (
+                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
+                ))}
+              </select>
+              <input type="date" value={newRes.checkIn} min={today} onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <input type="date" value={newRes.checkOut} min={newRes.checkIn || today} onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })} className="border p-2 w-full rounded-lg" />
+              <select value={newRes.checkInTime} onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })} className="border p-2 w-full rounded-lg">
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select value={newRes.checkOutTime} onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })} className="border p-2 w-full rounded-lg">
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button onClick={handleAddReservation} className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Save</button>
+              <button onClick={() => setAddResModal(false)} className="flex-1 bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500">Cancel</button>
+            </div>
+          </div>
         </div>
-        <ul className="text-sm text-gray-600 space-y-1 mt-2">
-          {admins.map((a) => (
-            <li key={a.id} className="flex justify-between items-center">
-              <span>{a.username} ({a.role})</span>
-              <button onClick={() => handleDeleteAdmin(a)} className="text-red-600 text-xs hover:underline">Delete</button>
-            </li>
-          ))}
-          {admins.length === 0 && <li>None</li>}
-        </ul>
-      </section>
-
-      {/* Customers */}
-      <section className="mb-8">
-        <h3 className="font-semibold mb-2">Customers</h3>
-        <ul className="border rounded divide-y max-h-48 overflow-y-auto">
-          {customers.map((cust) => (
-            <li key={cust.id} className="p-3">
-              {cust.name || cust.username} - {cust.username} - {cust.contactNumber || "N/A"}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Admin Logout - only at bottom of dashboard */}
-      <section className="pt-8 border-t mt-8">
-        <button
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
-          className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-        >
-          Logout
-        </button>
-      </section>
-    </div>
+      )}
+    </StaffDashboardLayout>
   );
 }
