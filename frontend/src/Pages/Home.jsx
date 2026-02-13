@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRooms } from "../Services/api";
+import Footer from "../components/Footer";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -87,6 +88,8 @@ export default function Home() {
           Check Availability
         </button>
       </div>
+
+      <Footer />
     </div>
   );
 }

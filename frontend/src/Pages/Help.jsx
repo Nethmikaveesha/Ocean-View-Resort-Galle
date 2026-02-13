@@ -1,7 +1,9 @@
 import React from "react";
+import Footer from "../components/Footer";
 
 export default function Help() {
   return (
+    <div>
     <div className="p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Help - Ocean View Resort Galle</h1>
 
@@ -22,6 +24,8 @@ export default function Help() {
         <h2 className="text-xl font-semibold mb-3">Contact</h2>
         <p className="text-gray-700">For technical support or further assistance, contact the IT department.</p>
       </section>
+    </div>
+    <Footer />
     </div>
   );
 }

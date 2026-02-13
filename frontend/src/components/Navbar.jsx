@@ -14,7 +14,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-blue-600 text-white p-4 flex justify-between items-center">
+    <nav className="bg-teal-800 text-white py-6 px-6 flex justify-between items-center shadow-md">
       <div className="text-xl font-bold">
         <Link to="/">Ocean View Resort</Link>
       </div>
