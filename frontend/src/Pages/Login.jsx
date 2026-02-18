@@ -153,7 +153,7 @@ export default function Login() {
               🔐
             </div>
             <h2 className="text-3xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Customer Login
+               Login
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-cyan-600 to-amber-600 mx-auto mb-4"></div>
             <p className="text-slate-600 text-sm leading-relaxed">
