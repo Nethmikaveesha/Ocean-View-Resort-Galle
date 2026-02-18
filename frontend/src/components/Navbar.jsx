@@ -74,7 +74,8 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    const isStaff = [ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST].includes(userRole);
+    navigate(isStaff ? "/staff-login" : "/");
     setMobileMenuOpen(false);
   };
 
@@ -106,7 +107,7 @@ export default function Navbar() {
 
             {userRole === ROLE_ADMIN ? (
               <>
-                <Link to="/admin-dashboard" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
+                <Link to="/admin" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
                   Admin Dashboard
                 </Link>
                 <button
@@ -118,7 +119,7 @@ export default function Navbar() {
               </>
             ) : userRole === ROLE_MANAGER ? (
               <>
-                <Link to="/manager-dashboard" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
+                <Link to="/admin/manager" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
                   Manager Dashboard
                 </Link>
                 <button
@@ -130,7 +131,7 @@ export default function Navbar() {
               </>
             ) : userRole === ROLE_RECEPTIONIST ? (
               <>
-                <Link to="/receptionist-dashboard" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
+                <Link to="/admin/receptionist" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
                   Receptionist Dashboard
                 </Link>
                 <button
@@ -158,14 +159,7 @@ export default function Navbar() {
                   Logout
                 </button>
               </>
-            ) : (
-              <Link
-                to="/login"
-                className="px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 font-medium"
-              >
-                Staff Login
-              </Link>
-            )}
+            ) : null}
           </div>
 
           {/* Mobile Menu Button */}
@@ -215,7 +209,7 @@ export default function Navbar() {
               {userRole === ROLE_ADMIN ? (
                 <>
                   <Link
-                    to="/admin-dashboard"
+                    to="/admin"
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
                   >
@@ -231,7 +225,7 @@ export default function Navbar() {
               ) : userRole === ROLE_MANAGER ? (
                 <>
                   <Link
-                    to="/manager-dashboard"
+                    to="/admin/manager"
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
                   >
@@ -247,7 +241,7 @@ export default function Navbar() {
               ) : userRole === ROLE_RECEPTIONIST ? (
                 <>
                   <Link
-                    to="/receptionist-dashboard"
+                    to="/admin/receptionist"
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
                   >
@@ -290,15 +284,7 @@ export default function Navbar() {
                     Logout
                   </button>
                 </>
-              ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all"
-                >
-                  Staff Login
-                </Link>
-              )}
+              ) : null}
             </div>
           </div>
         )}

@@ -2,9 +2,9 @@ import { Navigate } from "react-router-dom";
 import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST } from "../constants/roles";
 
 const ROLE_TO_DASHBOARD = {
-  [ROLE_ADMIN]: "/admin-dashboard",
-  [ROLE_MANAGER]: "/manager-dashboard",
-  [ROLE_RECEPTIONIST]: "/receptionist-dashboard",
+  [ROLE_ADMIN]: "/admin",
+  [ROLE_MANAGER]: "/admin/manager",
+  [ROLE_RECEPTIONIST]: "/admin/receptionist",
 };
 
 /**

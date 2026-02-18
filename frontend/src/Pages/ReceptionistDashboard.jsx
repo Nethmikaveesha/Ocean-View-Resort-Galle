@@ -37,7 +37,7 @@
 //       if (err?.response?.status === 403 || err?.response?.status === 401) {
 //         localStorage.removeItem("token");
 //         localStorage.removeItem("userRole");
-//         navigate("/login");
+//         navigate("/staff-login");
 //       } else {
 //         console.error(err);
 //       }
@@ -48,7 +48,7 @@
 
 //   useEffect(() => {
 //     if (localStorage.getItem("userRole") !== ROLE_RECEPTIONIST || !localStorage.getItem("token")) {
-//       navigate("/login");
+//       navigate("/staff-login");
 //       return;
 //     }
 //     fetchData();
@@ -236,7 +236,7 @@ export default function ReceptionistDashboard() {
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("userRole");
-        navigate("/login");
+        navigate("/staff-login");
       } else {
         console.error(err);
       }
@@ -247,7 +247,7 @@ export default function ReceptionistDashboard() {
 
   useEffect(() => {
     if (localStorage.getItem("userRole") !== ROLE_RECEPTIONIST || !localStorage.getItem("token")) {
-      navigate("/login");
+      navigate("/staff-login");
       return;
     }
     fetchData();

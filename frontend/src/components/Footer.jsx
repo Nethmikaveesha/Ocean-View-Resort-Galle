@@ -115,6 +115,13 @@ export default function Footer() {
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:scale-150 transition-transform"></span>
                 Help
               </Link>
+              <Link
+                to="/staff-login"
+                className="text-slate-500 hover:text-slate-400 transition-colors inline-flex items-center justify-center gap-2 group text-xs"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:scale-150 transition-transform"></span>
+                Staff
+              </Link>
             </nav>
           </div>
 

@@ -43,7 +43,7 @@
 //       if (err?.response?.status === 403 || err?.response?.status === 401) {
 //         localStorage.removeItem("token");
 //         localStorage.removeItem("userRole");
-//         navigate("/login");
+//         navigate("/staff-login");
 //       } else {
 //         console.error(err);
 //       }
@@ -54,7 +54,7 @@
 
 //   useEffect(() => {
 //     if (localStorage.getItem("userRole") !== ROLE_MANAGER || !localStorage.getItem("token")) {
-//       navigate("/login");
+//       navigate("/staff-login");
 //       return;
 //     }
 //     fetchData();
@@ -335,7 +335,7 @@ export default function ManagerDashboard() {
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("userRole");
-        navigate("/login");
+        navigate("/staff-login");
       } else {
         console.error(err);
       }
@@ -346,7 +346,7 @@ export default function ManagerDashboard() {
 
   useEffect(() => {
     if (localStorage.getItem("userRole") !== ROLE_MANAGER || !localStorage.getItem("token")) {
-      navigate("/login");
+      navigate("/staff-login");
       return;
     }
     fetchData();

@@ -4,6 +4,7 @@ import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST, ROLE_CUSTOMER } from "./co
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./components/AdminLayout";
 
 // Pages
 import Home from "./pages/Home";
@@ -12,6 +13,7 @@ import About from "./pages/About";
 import Help from "./pages/Help";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import StaffLogin from "./pages/StaffLogin";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
@@ -19,7 +21,7 @@ import ReceptionistDashboard from "./pages/ReceptionistDashboard";
 import AddReservation from "./pages/AddReservation";
 import ViewReservation from "./pages/ViewReservation";
 
-const STAFF_DASHBOARD_PATHS = ["/admin-dashboard", "/manager-dashboard", "/receptionist-dashboard"];
+const STAFF_DASHBOARD_PATHS = ["/admin"];
 
 function AppContent() {
   const location = useLocation();
@@ -36,6 +38,7 @@ function AppContent() {
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/staff-login" element={<StaffLogin />} />
 
             {/* Customer Protected Routes */}
             <Route
@@ -63,31 +66,33 @@ function AppContent() {
               }
             />
 
-            {/* Admin Protected Routes */}
-            <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute role={ROLE_ADMIN}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/manager-dashboard"
-              element={
-                <ProtectedRoute role={ROLE_MANAGER}>
-                  <ManagerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/receptionist-dashboard"
-              element={
-                <ProtectedRoute role={ROLE_RECEPTIONIST}>
-                  <ReceptionistDashboard />
-                </ProtectedRoute>
-              }
-            />
+            {/* Admin Protected Routes - all under /admin/* */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route
+                index
+                element={
+                  <ProtectedRoute role={ROLE_ADMIN}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="manager"
+                element={
+                  <ProtectedRoute role={ROLE_MANAGER}>
+                    <ManagerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="receptionist"
+                element={
+                  <ProtectedRoute role={ROLE_RECEPTIONIST}>
+                    <ReceptionistDashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
         </Routes>
       </div>
     </>

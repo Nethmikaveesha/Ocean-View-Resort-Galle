@@ -139,7 +139,7 @@ export default function StaffDashboardLayout({
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/staff-login");
   };
 
   return (

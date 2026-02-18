@@ -347,7 +347,7 @@ export default function AdminDashboard() {
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("userRole");
-        navigate("/login");
+        navigate("/staff-login");
       } else {
         console.error(err);
       }
@@ -358,7 +358,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (localStorage.getItem("userRole") === ROLE_ADMIN && !localStorage.getItem("token")) {
-      navigate("/login");
+      navigate("/staff-login");
       return;
     }
     fetchData();
