@@ -105,9 +105,9 @@ export default function Login() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("userRole");
     if (token && role) {
-      if (role === ROLE_ADMIN) navigate("/admin-dashboard", { replace: true });
-      else if (role === ROLE_MANAGER) navigate("/manager-dashboard", { replace: true });
-      else if (role === ROLE_RECEPTIONIST) navigate("/receptionist-dashboard", { replace: true });
+      if (role === ROLE_ADMIN) navigate("/admin", { replace: true });
+      else if (role === ROLE_MANAGER) navigate("/admin/manager", { replace: true });
+      else if (role === ROLE_RECEPTIONIST) navigate("/admin/receptionist", { replace: true });
       else if (role === "customer") navigate("/customer-dashboard", { replace: true });
     }
   }, [navigate]);
@@ -119,19 +119,15 @@ export default function Login() {
       const res = await loginUser({ username, password });
       if (res.data?.token) {
         const role = (res.data?.role || "").toLowerCase();
-        // Staff-only when accessed from navbar (no Check Availability flow). Customers must come from Check Availability.
-        if (role === "customer" && !fromCheckAvailability()) {
-          setError("Customers must use Check Availability, select a room, then log in from that page.");
-          return;
-        }
         localStorage.setItem("userRole", role);
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("username", username);
         login({ role, username });
-        if (role === ROLE_ADMIN) navigate("/admin-dashboard");
-        else if (role === ROLE_MANAGER) navigate("/manager-dashboard");
-        else if (role === ROLE_RECEPTIONIST) navigate("/receptionist-dashboard");
-        else navigate("/add-reservation");
+        if (role === ROLE_ADMIN) navigate("/admin");
+        else if (role === ROLE_MANAGER) navigate("/admin/manager");
+        else if (role === ROLE_RECEPTIONIST) navigate("/admin/receptionist");
+        else if (role === "customer")
+          navigate(fromCheckAvailability() ? "/add-reservation" : "/view-reservation");
       } else {
         setError("Invalid credentials");
       }
@@ -157,13 +153,13 @@ export default function Login() {
               🔐
             </div>
             <h2 className="text-3xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              {fromCheckAvailability() ? "Customer Login" : "Staff Login"}
+              Customer Login
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-cyan-600 to-amber-600 mx-auto mb-4"></div>
             <p className="text-slate-600 text-sm leading-relaxed">
               {fromCheckAvailability()
                 ? "Log in to complete your reservation with your selected room."
-                : "Admin, Manager, or Receptionist only. Customers must use Check Availability to register and log in."}
+                : "Log in to view your reservations and manage your bookings."}
             </p>
           </div>
 

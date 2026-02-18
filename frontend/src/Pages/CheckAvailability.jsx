@@ -271,14 +271,16 @@
 //   );
 // }
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getRooms, checkRoomAvailability, getAvailableRoomsForDates } from "../Services/api";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function CheckAvailability() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [rooms, setRooms] = useState([]);
+  const redirectMessage = location.state?.message;
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [checkInTime, setCheckInTime] = useState("12:00 PM");
@@ -399,6 +401,11 @@ export default function CheckAvailability() {
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Select your dates to see which rooms are available. Only if rooms are available can you register and make a reservation.
           </p>
+          {redirectMessage && (
+            <div className="mt-4 p-4 bg-amber-100 border border-amber-300 rounded-xl text-amber-900 max-w-2xl mx-auto">
+              {redirectMessage}
+            </div>
+          )}
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-amber-600 mx-auto mt-6"></div>
         </div>
 

@@ -79,6 +79,25 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
+  const hasAvailability = () =>
+    sessionStorage.getItem("availabilityVerified") && sessionStorage.getItem("selectedRoom");
+
+  const handleLoginClick = (e) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    navigate("/login");
+  };
+
+  const handleRegisterClick = (e) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (!hasAvailability()) {
+      navigate("/check", { state: { message: "Please check availability and select a room first." } });
+      return;
+    }
+    navigate("/register");
+  };
+
   return (
     <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl sticky top-0 z-50 backdrop-blur-lg border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6">
@@ -104,6 +123,23 @@ export default function Navbar() {
             <Link to="/help" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
               Help
             </Link>
+
+            {!userRole && (
+              <>
+                <button
+                  onClick={handleLoginClick}
+                  className="text-slate-200 hover:text-cyan-400 transition-colors font-medium bg-transparent border-none cursor-pointer"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={handleRegisterClick}
+                  className="px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 font-medium"
+                >
+                  Register
+                </button>
+              </>
+            )}
 
             {userRole === ROLE_ADMIN ? (
               <>
@@ -205,6 +241,23 @@ export default function Navbar() {
               >
                 Help
               </Link>
+
+              {!userRole && (
+                <>
+                  <button
+                    onClick={handleLoginClick}
+                    className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors text-left w-full"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={handleRegisterClick}
+                    className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all text-left w-full"
+                  >
+                    Register
+                  </button>
+                </>
+              )}
 
               {userRole === ROLE_ADMIN ? (
                 <>
