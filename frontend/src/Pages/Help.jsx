@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
-import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST } from "../constants/roles";
+import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST, ROLE_CUSTOMER } from "../constants/roles";
 
 export default function Help() {
   const userRole = localStorage.getItem("userRole")?.toLowerCase() || "";
@@ -8,6 +9,8 @@ export default function Help() {
   const isAdmin = userRole === ROLE_ADMIN;
   const isManager = userRole === ROLE_MANAGER;
   const isReceptionist = userRole === ROLE_RECEPTIONIST;
+  const isCustomer = userRole === ROLE_CUSTOMER;
+  const isStaff = isAdmin || isManager || isReceptionist;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-amber-50">
@@ -22,7 +25,7 @@ export default function Help() {
         <div className="mb-16 animate-[fadeIn_0.8s_ease-out]">
           <div className="inline-block mb-4">
             <span className="text-cyan-700 text-sm font-medium tracking-[0.3em] uppercase border-b-2 border-cyan-700 pb-2">
-              Staff Portal
+              {isStaff ? "Staff Portal" : "Guest & Customer"}
             </span>
           </div>
           <h1 className="text-5xl sm:text-6xl font-serif mb-4 text-slate-900 leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
@@ -32,7 +35,7 @@ export default function Help() {
             {isAdmin && "Admin Guidelines for Ocean View Resort"}
             {isManager && "Manager Guidelines for Ocean View Resort"}
             {isReceptionist && "Receptionist Guidelines for Ocean View Resort"}
-            {!isAdmin && !isManager && !isReceptionist && "Reservation System Guidelines for Ocean View Resort Team"}
+            {(isCustomer || !isStaff) && "Your guide to booking a stay at Ocean View Resort, Galle"}
           </p>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-amber-600 mt-6"></div>
         </div>
@@ -367,22 +370,145 @@ export default function Help() {
           </div>
         )}
 
-        {/* Non-staff / fallback */}
+        {/* Customer & Guest help */}
         {!isAdmin && !isManager && !isReceptionist && (
-          <div className="animate-[fadeInUp_0.9s_ease-out]">
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-10 shadow-lg border border-white/20 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-3xl mx-auto mb-6">
-                💬
+          <div className="space-y-8 animate-[fadeInUp_0.9s_ease-out]">
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="bg-gradient-to-br from-cyan-600 to-teal-700 rounded-3xl p-8 shadow-2xl text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                <div className="relative z-10">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-4xl mb-6">
+                    🏨
+                  </div>
+                  <h2 className="text-2xl font-serif mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                    How to Book
+                  </h2>
+                  <ol className="space-y-3 text-sm text-cyan-50">
+                    <li className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                      <span>Go to <strong className="text-white">Check Availability</strong> and select your dates and room type</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                      <span>Choose an available room and click to proceed</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                      <span><strong className="text-white">Register</strong> (create an account) if you are a new guest</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold shrink-0">4</span>
+                      <span>Complete your reservation and confirm your booking</span>
+                    </li>
+                  </ol>
+                </div>
               </div>
-              <h2 className="text-2xl font-serif text-slate-900 mb-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                Staff Help Center
-              </h2>
-              <p className="text-slate-600 mb-6 max-w-2xl mx-auto">
-                This help center is for Ocean View Resort staff. Please log in with your staff credentials to view role-specific guidelines. For assistance, contact the IT department.
-              </p>
-              <button className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105">
-                Contact IT Support
-              </button>
+
+              <div className="space-y-6">
+                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xl shrink-0">
+                      📅
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                        Manage Your Bookings
+                      </h3>
+                      <p className="text-slate-600 leading-relaxed text-sm">
+                        Once logged in, use <strong>My Reservations</strong> to view, update, or cancel your bookings. Your reservation number and bill details are shown on each booking.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xl shrink-0">
+                      📄
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                        Download Your Bill
+                      </h3>
+                      <p className="text-slate-600 leading-relaxed text-sm">
+                        From your reservation details, you can download your bill as a PDF for your records or reimbursement.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <Link
+                to="/check"
+                className="group bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-center"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  ✓
+                </div>
+                <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  Check Availability
+                </h3>
+                <p className="text-slate-600 text-sm">
+                  See which rooms are free for your dates
+                </p>
+              </Link>
+              <Link
+                to={isCustomer ? "/add-reservation" : "/check"}
+                className="group bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-center"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  📝
+                </div>
+                <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  {isCustomer ? "Add Reservation" : "Book a Room"}
+                </h3>
+                <p className="text-slate-600 text-sm">
+                  {isCustomer ? "Make a new booking" : "Check availability first to book"}
+                </p>
+              </Link>
+              <Link
+                to={isCustomer ? "/view-reservation" : "/login"}
+                className="group bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-center"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  📋
+                </div>
+                <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  {isCustomer ? "My Reservations" : "Log In"}
+                </h3>
+                <p className="text-slate-600 text-sm">
+                  {isCustomer ? "View and manage your bookings" : "Access your account"}
+                </p>
+              </Link>
+            </div>
+
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-10 shadow-2xl text-white text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 rounded-full bg-cyan-500/30 flex items-center justify-center text-4xl mx-auto mb-6">
+                  💬
+                </div>
+                <h2 className="text-2xl font-serif mb-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  Need Assistance?
+                </h2>
+                <p className="text-slate-300 mb-6 max-w-xl mx-auto">
+                  Contact Ocean View Resort for booking support, special requests, or general inquiries.
+                </p>
+                <a
+                  href="tel:+94112345678"
+                  className="inline-block px-8 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105 mr-3 mb-2"
+                >
+                  Call Us
+                </a>
+                <a
+                  href="mailto:reservations@oceanviewresort.com"
+                  className="inline-block px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-full font-medium hover:bg-white/20 transition-all duration-300"
+                >
+                  Email Us
+                </a>
+              </div>
             </div>
           </div>
         )}
