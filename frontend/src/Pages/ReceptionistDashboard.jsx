@@ -213,6 +213,7 @@ const RECEPTIONIST_NAV = [
   { id: "reservations", label: "View Reservations", icon: "📅" },
   { id: "availability", label: "Check Availability", icon: "✓" },
   { id: "rooms", label: "View Rooms", icon: "🛏️" },
+  { id: "help", label: "Help", icon: "❓" },
 ];
 
 export default function ReceptionistDashboard() {
@@ -372,6 +373,37 @@ export default function ReceptionistDashboard() {
               <span className="text-2xl">✓</span>
               <span>Go to Check Availability</span>
             </Link>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "help" && (
+        <section className="mb-8">
+          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl space-y-6">
+            <h2 className="text-2xl font-serif text-slate-900" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Receptionist Help
+            </h2>
+            <h3 className="text-lg font-semibold text-slate-800">Your Permissions</h3>
+            <p className="text-slate-700">
+              As a Receptionist, you can create walk-in reservations, view reservations and rooms, and check availability.
+              You cannot add or edit rooms, manage pricing, or view customer accounts—those tasks are handled by Managers and Admins.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">Customer Flow</h3>
+            <p className="text-slate-700">
+              Guests may book online or walk in. Use Walk-in Reservation to add bookings for guests arriving at the front desk.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">Walk-in Reservations</h3>
+            <p className="text-slate-700">
+              Select room type and dates first to see available rooms. Choose a room, enter guest details and check-in/check-out times, then save.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">Security</h3>
+            <p className="text-slate-700">
+              Log out when leaving your workstation. Report any suspicious activity to your supervisor or IT.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">IT Support</h3>
+            <p className="text-slate-700">
+              For technical issues or password reset, contact the IT department.
+            </p>
           </div>
         </section>
       )}

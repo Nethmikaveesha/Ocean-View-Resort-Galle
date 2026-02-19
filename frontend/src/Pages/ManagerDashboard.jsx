@@ -308,6 +308,7 @@ const MANAGER_NAV = [
   { id: "reservations", label: "View Reservations", icon: "📅" },
   { id: "create-res", label: "Create Reservation", icon: "➕" },
   { id: "customers", label: "View Customers", icon: "👤" },
+  { id: "help", label: "Help", icon: "❓" },
 ];
 
 export default function ManagerDashboard() {
@@ -624,6 +625,37 @@ export default function ManagerDashboard() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "help" && (
+        <section className="mb-8">
+          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl space-y-6">
+            <h2 className="text-2xl font-serif text-slate-900" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Manager Help
+            </h2>
+            <h3 className="text-lg font-semibold text-slate-800">Your Permissions</h3>
+            <p className="text-slate-700">
+              As a Manager, you can manage rooms (add, edit, update pricing), view reservations and customers, and create reservations.
+              You cannot create or edit admin accounts—that is restricted to Admins.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">Customer Flow</h3>
+            <p className="text-slate-700">
+              Guests can book online or via reception. Use Create Reservation to add bookings directly for walk-ins or phone bookings.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">Adding Reservations</h3>
+            <p className="text-slate-700">
+              Select room type and dates first to see available rooms. Choose a room, enter guest details and times, then save.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">Security</h3>
+            <p className="text-slate-700">
+              Log out when leaving your workstation. Report any unauthorized access or suspicious activity to IT.
+            </p>
+            <h3 className="text-lg font-semibold text-slate-800">IT Support</h3>
+            <p className="text-slate-700">
+              For technical issues or password reset, contact the IT department.
+            </p>
           </div>
         </section>
       )}

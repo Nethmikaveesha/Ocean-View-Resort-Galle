@@ -117,9 +117,9 @@ export default function Footer() {
               </Link>
               <Link
                 to="/staff-login"
-                className="text-slate-500 hover:text-slate-400 transition-colors inline-flex items-center justify-center gap-2 group text-xs"
+                className="text-slate-300 hover:text-cyan-400 transition-colors inline-flex items-center justify-center gap-2 group"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:scale-150 transition-transform"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 group-hover:scale-150 transition-transform"></span>
                 Staff
               </Link>
             </nav>
@@ -157,7 +157,9 @@ export default function Footer() {
             <span className="hidden sm:inline">•</span>
             <span>All rights reserved.</span>
             <span className="hidden sm:inline">•</span>
-            <span>Crafted with ❤️ for your perfect getaway</span>
+            <span>Terms of Service</span>
+            <span className="hidden sm:inline">•</span>
+            <span>Privacy Policy</span>
           </div>
         </div>
       </div>

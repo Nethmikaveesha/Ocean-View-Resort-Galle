@@ -281,13 +281,15 @@ export default function CheckAvailability() {
   const location = useLocation();
   const [rooms, setRooms] = useState([]);
   const redirectMessage = location.state?.message;
+  const preselectedRoom = location.state?.preselectedRoom; // { id, type, price, roomNumber } from Home room card
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [checkInTime, setCheckInTime] = useState("12:00 PM");
   const [loading, setLoading] = useState(false);
   const [roomAvailability, setRoomAvailability] = useState({}); // { "Single": true, "Double": false }
   const [availableRoomsList, setAvailableRoomsList] = useState([]); // [{ id, type, price, ... }]
-  const [selectedRoom, setSelectedRoom] = useState(null); // { id, type, price }
+  const [selectedRoom, setSelectedRoom] = useState(null); // room user picks after availability check (for Register/Login)
+  const [selectedRoomForCheck, setSelectedRoomForCheck] = useState(null); // room user selects to check (when from hero, no preselection)
   const [hasChecked, setHasChecked] = useState(false);
   const [error, setError] = useState("");
 
@@ -306,7 +308,16 @@ export default function CheckAvailability() {
   }, []);
 
   const uniqueRoomTypes = [...new Set(rooms.map((r) => r.type).filter(Boolean))];
-  const typesToCheck = uniqueRoomTypes.length > 0 ? uniqueRoomTypes : ["Single", "Double", "Deluxe"];
+  const typesToCheckBase = uniqueRoomTypes.length > 0 ? uniqueRoomTypes : ["Single", "Double", "Deluxe"];
+  const typesToCheck = preselectedRoom?.type
+    ? [preselectedRoom.type]
+    : selectedRoomForCheck
+      ? [selectedRoomForCheck.type]
+      : typesToCheckBase;
+  const roomsToDisplay = preselectedRoom
+    ? rooms.filter((r) => r.id === preselectedRoom.id)
+    : rooms;
+  const roomToCheck = preselectedRoom || selectedRoomForCheck; // which room we're checking for (preselected from card, or user-selected from list)
 
   const handleCheck = async (e) => {
     e.preventDefault();
@@ -318,6 +329,10 @@ export default function CheckAvailability() {
 
     if (!checkIn || !checkOut) {
       setError("Please select both check-in and check-out dates.");
+      return;
+    }
+    if (!preselectedRoom && !selectedRoomForCheck) {
+      setError("Please select a room to check availability for.");
       return;
     }
     if (checkIn < today) {
@@ -352,7 +367,10 @@ export default function CheckAvailability() {
           } catch (_) {}
         }
       }
-      setAvailableRoomsList(allRooms);
+      const finalList = roomToCheck
+        ? allRooms.filter((r) => String(r.id) === String(roomToCheck.id))
+        : allRooms;
+      setAvailableRoomsList(finalList);
       setHasChecked(true);
     } catch (err) {
       setError("Failed to check availability.");
@@ -410,38 +428,71 @@ export default function CheckAvailability() {
         </div>
 
         {/* Room Types Preview */}
-        {rooms.length > 0 && (
+        {roomsToDisplay.length > 0 && (
           <section className="mb-12 animate-[fadeInUp_0.9s_ease-out]">
             <h3 className="text-2xl font-serif text-slate-900 mb-6 text-center" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Our Room Types
+              {preselectedRoom ? "Your Selected Room" : "Our Room Types"}
             </h3>
+            {!preselectedRoom && (
+              <p className="text-center text-slate-600 mb-4 text-sm">
+                Select a room to check availability for
+              </p>
+            )}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {rooms.map((room) => (
-                <div key={room.id} className="bg-white/60 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                  <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                    {room.imageBase64 ? (
-                      <img src={room.imageBase64} alt={room.type} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-slate-400 text-3xl font-serif" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                        {room.type?.charAt(0) || "R"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-slate-900">{room.type}</p>
-                    <p className="text-cyan-700 font-medium text-sm">LKR {room.price?.toLocaleString()}</p>
-                    {hasChecked && (
-                      <p
-                        className={`mt-2 font-medium text-sm ${
-                          roomAvailability[room.type] ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {roomAvailability[room.type] ? "✓ Available" : "✗ Not available"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+              {roomsToDisplay.map((room) => {
+                const isSelected = !preselectedRoom && selectedRoomForCheck && String(selectedRoomForCheck.id) === String(room.id);
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => !preselectedRoom && setSelectedRoomForCheck(isSelected ? null : { id: room.id, type: room.type, price: room.price, roomNumber: room.roomNumber })}
+                    className={`text-left rounded-2xl overflow-hidden transition-all duration-300 ${
+                      preselectedRoom
+                        ? "bg-white/60 backdrop-blur-sm shadow-lg border border-white/20 hover:shadow-2xl hover:scale-105 cursor-default"
+                        : isSelected
+                          ? "bg-white shadow-2xl border-2 border-cyan-500 ring-4 ring-cyan-200 scale-105"
+                          : "bg-white/60 backdrop-blur-sm shadow-lg border border-white/20 hover:shadow-2xl hover:scale-105 cursor-pointer"
+                    }`}
+                  >
+                    <div className="relative aspect-video bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                      {room.imageBase64 ? (
+                        <img src={room.imageBase64} alt={room.type} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-slate-400 text-3xl font-serif" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                          {room.type?.charAt(0) || "R"}
+                        </span>
+                      )}
+                      {!preselectedRoom && isSelected && (
+                        <div className="absolute inset-0 bg-cyan-500/10 flex items-center justify-center">
+                          <span className="bg-cyan-600 text-white px-3 py-1 rounded-full text-sm font-medium">Selected</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 relative">
+                      <p className="font-semibold text-slate-900">{room.type}</p>
+                      <p className="text-cyan-700 font-medium text-sm">Room #{room.roomNumber || room.id}</p>
+                      <p className="text-slate-600 text-sm">LKR {room.price?.toLocaleString()}</p>
+                      {hasChecked && (
+                        (() => {
+                          const isThisRoomChecked = roomToCheck && String(room.id) === String(roomToCheck.id);
+                          const isAvailable = isThisRoomChecked
+                            ? availableRoomsList.some((r) => String(r.id) === String(room.id))
+                            : roomAvailability[room.type];
+                          return (
+                            <p
+                              className={`mt-2 font-medium text-sm ${
+                                isAvailable ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {isAvailable ? "✓ Available" : "✗ Not available"}
+                            </p>
+                          );
+                        })()
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}
