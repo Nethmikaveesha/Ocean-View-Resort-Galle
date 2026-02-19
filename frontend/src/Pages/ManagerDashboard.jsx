@@ -630,32 +630,58 @@ export default function ManagerDashboard() {
       )}
 
       {activeSection === "help" && (
-        <section className="mb-8">
-          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl space-y-6">
-            <h2 className="text-2xl font-serif text-slate-900" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Manager Help
-            </h2>
-            <h3 className="text-lg font-semibold text-slate-800">Your Permissions</h3>
-            <p className="text-slate-700">
-              As a Manager, you can manage rooms (add, edit, update pricing), view reservations and customers, and create reservations.
-              You cannot create or edit admin accounts—that is restricted to Admins.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">Customer Flow</h3>
-            <p className="text-slate-700">
-              Guests can book online or via reception. Use Create Reservation to add bookings directly for walk-ins or phone bookings.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">Adding Reservations</h3>
-            <p className="text-slate-700">
-              Select room type and dates first to see available rooms. Choose a room, enter guest details and times, then save.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">Security</h3>
-            <p className="text-slate-700">
-              Log out when leaving your workstation. Report any unauthorized access or suspicious activity to IT.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">IT Support</h3>
-            <p className="text-slate-700">
-              For technical issues or password reset, contact the IT department.
-            </p>
+        <section className="mb-8 space-y-6">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-8 shadow-2xl text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl mb-6">👔</div>
+                <h2 className="text-2xl font-serif mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Your Permissions</h2>
+                <ul className="space-y-2 text-sm text-amber-50">
+                  <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>Add, update rooms and pricing</span></li>
+                  <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>Create and cancel reservations</span></li>
+                  <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>View customer information</span></li>
+                  <li className="flex items-start gap-2"><span className="opacity-50 mt-1">✗</span><span className="opacity-90">Cannot create or delete admins</span></li>
+                </ul>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xl flex-shrink-0">📝</div>
+                  <div>
+                    <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Add Reservation</h3>
+                    <p className="text-slate-600 text-sm">Select room type and dates first to see available rooms. Choose a room, enter guest details and times, then save.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xl flex-shrink-0">👥</div>
+                  <div>
+                    <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Customer Flow</h3>
+                    <p className="text-slate-600 text-sm">Guests can book online or via reception. Use Create Reservation for walk-ins or phone bookings.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-2xl p-8 shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-xl flex-shrink-0">🔒</div>
+                <div>
+                  <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Security</h3>
+                  <p className="text-slate-700 text-sm">Log out when leaving your workstation. Report any unauthorized access to IT.</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg text-center flex flex-col justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xl mx-auto mb-2">💬</div>
+              <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>IT Support</h3>
+              <p className="text-slate-600 text-sm mb-3">Contact the IT department for technical support.</p>
+              <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg text-sm self-center">Contact IT</button>
+            </div>
           </div>
         </section>
       )}

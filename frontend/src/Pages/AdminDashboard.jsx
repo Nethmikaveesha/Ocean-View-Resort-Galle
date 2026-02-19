@@ -418,33 +418,62 @@ export default function AdminDashboard() {
       )}
 
       {activeSection === "help" && (
-        <section className="mb-8">
-          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl space-y-6">
-            <h2 className="text-2xl font-serif text-slate-900" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Admin Help
-            </h2>
-            <h3 className="text-lg font-semibold text-slate-800">Your Capabilities</h3>
-            <p className="text-slate-700">
-              As an Admin, you have full access to the resort system. You can create and manage staff accounts (Admin, Manager, Receptionist),
-              add and edit rooms, view all reservations and customers, and perform any administrative task.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">Restricted Access</h3>
-            <p className="text-slate-700">
-              This dashboard is restricted to staff with Admin privileges. Keep your credentials secure and do not share them.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">Role Overview</h3>
-            <p className="text-slate-700">
-              Admins oversee the system; Managers handle rooms, pricing, reservations, and customers; Receptionists handle walk-in bookings,
-              view reservations, and check availability.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">Security</h3>
-            <p className="text-slate-700">
-              Use a strong password and log out when leaving your workstation. Report any suspicious activity to IT.
-            </p>
-            <h3 className="text-lg font-semibold text-slate-800">IT Support</h3>
-            <p className="text-slate-700">
-              For technical support or password reset, contact the IT department.
-            </p>
+        <section className="mb-8 space-y-6">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 shadow-2xl text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-3xl mb-6">
+                  🔐
+                </div>
+                <h2 className="text-2xl font-serif mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  Admin Capabilities
+                </h2>
+                <div className="bg-amber-500/20 backdrop-blur-sm rounded-lg p-4 border border-amber-400/30 mb-6">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">⚠️</span>
+                    <div>
+                      <p className="text-amber-200 text-sm font-semibold mb-1">Restricted Access</p>
+                      <p className="text-amber-100 text-xs">Keep your credentials secure and do not share them.</p>
+                    </div>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li className="flex items-start gap-2"><span className="text-cyan-400 mt-1">✓</span><span>Create and manage staff accounts</span></li>
+                  <li className="flex items-start gap-2"><span className="text-cyan-400 mt-1">✓</span><span>Add and edit rooms</span></li>
+                  <li className="flex items-start gap-2"><span className="text-cyan-400 mt-1">✓</span><span>View all reservations and customers</span></li>
+                  <li className="flex items-start gap-2"><span className="text-cyan-400 mt-1">✓</span><span>Full system access</span></li>
+                </ul>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xl flex-shrink-0">👥</div>
+                  <div>
+                    <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Role Overview</h3>
+                    <p className="text-slate-600 text-sm">Admins oversee the system; Managers handle rooms, pricing, reservations, and customers; Receptionists handle walk-in bookings and check availability.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-2xl p-8 shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-xl flex-shrink-0">🔒</div>
+                  <div>
+                    <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Security</h3>
+                    <p className="text-slate-700 text-sm">Use a strong password and log out when leaving your workstation. Report any suspicious activity to IT.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg text-center">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl mx-auto mb-4">💬</div>
+            <h3 className="text-xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Need Assistance?</h3>
+            <p className="text-slate-600 text-sm mb-4">For technical support or password reset, contact the IT department.</p>
+            <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg text-sm">
+              Contact IT Support
+            </button>
           </div>
         </section>
       )}
