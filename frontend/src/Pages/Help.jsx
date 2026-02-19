@@ -151,7 +151,11 @@ export default function Help() {
                   <ul className="space-y-2 text-sm text-amber-50">
                     <li className="flex items-start gap-2">
                       <span className="text-white mt-1">✓</span>
-                      <span>Add, update rooms and pricing</span>
+                      <span>Add, edit, and delete rooms</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-white mt-1">✓</span>
+                      <span>Update room pricing</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-white mt-1">✓</span>
@@ -200,12 +204,21 @@ export default function Help() {
                         Customer Flow
                       </h3>
                       <p className="text-slate-600 leading-relaxed text-sm">
-                        Guests can book online or via reception. Use Create Reservation to add bookings for walk-ins or phone bookings.
+                        Guests can book online or via reception. Use Create Reservation in your dashboard to add bookings for walk-ins or phone bookings.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+              <h3 className="text-lg font-serif text-slate-900 mb-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                💰 Managing Rooms & Pricing
+              </h3>
+              <p className="text-slate-600 text-sm mb-3">
+                Use <strong>Manage Rooms</strong> to edit or delete existing rooms. Use <strong>Update Pricing</strong> to change room rates. Changes apply immediately to new reservations.
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -219,17 +232,18 @@ export default function Help() {
                       Security
                     </h3>
                     <p className="text-slate-700 text-sm">
-                      Log out when leaving your workstation. Report any unauthorized access to IT.
+                      Log out when leaving your workstation. Never share credentials. Report any unauthorized access to IT.
                     </p>
                   </div>
                 </div>
               </div>
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 text-center flex flex-col justify-center">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl mx-auto mb-3">💬</div>
                 <h3 className="text-xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                   Need Help?
                 </h3>
                 <p className="text-slate-600 text-sm mb-4">
-                  Contact the IT department for technical support.
+                  Contact the IT department for technical support or password reset.
                 </p>
                 <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg text-sm self-center">
                   Contact IT
@@ -288,7 +302,7 @@ export default function Help() {
                         Walk-in Reservations
                       </h3>
                       <p className="text-slate-600 leading-relaxed text-sm">
-                        Select room type and dates first to see available rooms. Choose a room, enter guest details and check-in/check-out times, then save.
+                        In your dashboard, use <strong>Walk-in Reservation</strong> or <strong>Create Walk-in Reservation</strong>. Select room type and dates first to see available rooms. Choose a room, enter guest details and check-in/check-out times, then save.
                       </p>
                     </div>
                   </div>
@@ -304,12 +318,21 @@ export default function Help() {
                         Customer Flow
                       </h3>
                       <p className="text-slate-600 leading-relaxed text-sm">
-                        Guests may book online or walk in. Use Walk-in Reservation to add bookings for guests arriving at the front desk.
+                        Guests may book online or walk in. Use Walk-in Reservation for guests arriving at the front desk without a prior booking.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+              <h3 className="text-lg font-serif text-slate-900 mb-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                ✓ Check Availability
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Use <strong>Check Availability</strong> in your dashboard to see which rooms are free for given dates. You can also go to the public check page to verify availability from a guest's perspective.
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -323,17 +346,18 @@ export default function Help() {
                       Security
                     </h3>
                     <p className="text-slate-700 text-sm">
-                      Log out when leaving your workstation. Report any suspicious activity to your supervisor or IT.
+                      Log out when leaving your workstation. Never share credentials. Report any suspicious activity to your supervisor or IT.
                     </p>
                   </div>
                 </div>
               </div>
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 text-center flex flex-col justify-center">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl mx-auto mb-3">💬</div>
                 <h3 className="text-xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                   Need Help?
                 </h3>
                 <p className="text-slate-600 text-sm mb-4">
-                  Contact the IT department for technical support.
+                  Contact the IT department for technical support or password reset.
                 </p>
                 <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg text-sm self-center">
                   Contact IT

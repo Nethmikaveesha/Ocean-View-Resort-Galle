@@ -409,11 +409,15 @@ export default function ReceptionistDashboard() {
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xl flex-shrink-0">👥</div>
                   <div>
                     <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Customer Flow</h3>
-                    <p className="text-slate-600 text-sm">Guests may book online or walk in. Use Walk-in Reservation for guests arriving at the front desk.</p>
+                    <p className="text-slate-600 text-sm">Guests may book online or walk in. Use Walk-in Reservation for guests arriving at the front desk without a prior booking.</p>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+          <div className="rounded-2xl p-6 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg">
+            <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>✓ Check Availability</h3>
+            <p className="text-slate-600 text-sm">Use <strong>Check Availability</strong> in the sidebar to see which rooms are free for given dates. You can also go to the public check page to verify availability from a guest's perspective.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="rounded-2xl p-8 shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
@@ -421,14 +425,14 @@ export default function ReceptionistDashboard() {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-xl flex-shrink-0">🔒</div>
                 <div>
                   <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Security</h3>
-                  <p className="text-slate-700 text-sm">Log out when leaving your workstation. Report any suspicious activity to your supervisor or IT.</p>
+                  <p className="text-slate-700 text-sm">Log out when leaving your workstation. Never share credentials. Report any suspicious activity to your supervisor or IT.</p>
                 </div>
               </div>
             </div>
             <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg text-center flex flex-col justify-center">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xl mx-auto mb-2">💬</div>
               <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>IT Support</h3>
-              <p className="text-slate-600 text-sm mb-3">Contact the IT department for technical support.</p>
+              <p className="text-slate-600 text-sm mb-3">Contact the IT department for technical support or password reset.</p>
               <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg text-sm self-center">Contact IT</button>
             </div>
           </div>

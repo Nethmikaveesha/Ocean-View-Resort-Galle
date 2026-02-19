@@ -638,7 +638,8 @@ export default function ManagerDashboard() {
                 <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl mb-6">👔</div>
                 <h2 className="text-2xl font-serif mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Your Permissions</h2>
                 <ul className="space-y-2 text-sm text-amber-50">
-                  <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>Add, update rooms and pricing</span></li>
+                  <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>Add, edit, and delete rooms</span></li>
+                  <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>Update room pricing</span></li>
                   <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>Create and cancel reservations</span></li>
                   <li className="flex items-start gap-2"><span className="text-white mt-1">✓</span><span>View customer information</span></li>
                   <li className="flex items-start gap-2"><span className="opacity-50 mt-1">✗</span><span className="opacity-90">Cannot create or delete admins</span></li>
@@ -666,20 +667,24 @@ export default function ManagerDashboard() {
               </div>
             </div>
           </div>
+          <div className="rounded-2xl p-6 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg">
+            <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>💰 Managing Rooms & Pricing</h3>
+            <p className="text-slate-600 text-sm">Use <strong>Manage Rooms</strong> to edit or delete existing rooms. Use <strong>Update Pricing</strong> to change room rates. Changes apply immediately to new reservations.</p>
+          </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="rounded-2xl p-8 shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-xl flex-shrink-0">🔒</div>
                 <div>
                   <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Security</h3>
-                  <p className="text-slate-700 text-sm">Log out when leaving your workstation. Report any unauthorized access to IT.</p>
+                  <p className="text-slate-700 text-sm">Log out when leaving your workstation. Never share credentials. Report any unauthorized access to IT.</p>
                 </div>
               </div>
             </div>
             <div className="rounded-2xl p-8 shadow-lg border border-white/20 bg-white/70 backdrop-blur-lg text-center flex flex-col justify-center">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xl mx-auto mb-2">💬</div>
               <h3 className="text-lg font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>IT Support</h3>
-              <p className="text-slate-600 text-sm mb-3">Contact the IT department for technical support.</p>
+              <p className="text-slate-600 text-sm mb-3">Contact the IT department for technical support or password reset.</p>
               <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg text-sm self-center">Contact IT</button>
             </div>
           </div>
