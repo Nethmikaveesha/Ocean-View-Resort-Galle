@@ -292,6 +292,7 @@
 // }
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { getRooms, getReservations, getCustomers, addRoom, updateRoom, deleteRoom, addReservation, deleteReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 import StaffDashboardLayout, { MetricCard } from "../components/StaffDashboardLayout";
@@ -361,30 +362,42 @@ export default function ManagerDashboard() {
     reader.readAsDataURL(file);
   };
 
+  const handleEditRoomImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingRoom) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setEditingRoom((prev) => ({ ...prev, imageBase64: reader.result }));
+    reader.readAsDataURL(file);
+  };
+
   const handleAddRoom = async () => {
     if (!newRoom.type || !newRoom.price) {
-      alert("Type and price are required.");
+      toast.error("Type and price are required.");
       return;
     }
     try {
       await addRoom({ type: newRoom.type, price: Number(newRoom.price), imageBase64: newRoom.imageBase64 || undefined, available: true });
-      alert("Room added successfully!");
+      toast.success("Room added successfully!");
       setNewRoom({ type: "Single", price: 10000, imageBase64: "" });
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
   const handleUpdateRoom = async () => {
-    if (!editingRoom || !editingRoom.price) return;
+    if (!editingRoom?.id || !editingRoom?.type || editingRoom?.price === "" || editingRoom?.price == null) return;
     try {
-      await updateRoom(editingRoom.id, { ...editingRoom, price: Number(editingRoom.price) });
-      alert("Room updated!");
+      await updateRoom(editingRoom.id, {
+        type: editingRoom.type,
+        price: Number(editingRoom.price),
+        imageBase64: editingRoom.imageBase64 || undefined,
+      });
+      toast.success("Room updated!");
       setEditingRoom(null);
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -392,10 +405,10 @@ export default function ManagerDashboard() {
     if (!window.confirm("Delete this room?")) return;
     try {
       await deleteRoom(id);
-      alert("Room deleted.");
+      toast.success("Room deleted.");
       fetchData();
     } catch (_) {
-      alert("Failed to delete.");
+      toast.error("Failed to delete.");
     }
   };
 
@@ -403,26 +416,26 @@ export default function ManagerDashboard() {
     if (!window.confirm(`Cancel reservation ${resv.reservationNumber}?`)) return;
     try {
       await deleteReservation(resv.reservationNumber);
-      alert("Reservation cancelled.");
+      toast.success("Reservation cancelled.");
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
   const handleAddReservation = async () => {
     if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
-      alert("Please fill guest name, dates, and select a room.");
+      toast.error("Please fill guest name, dates, and select a room.");
       return;
     }
     try {
       await addReservation({ ...newRes, customerUsername: null });
-      alert("Reservation added successfully!");
+      toast.success("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -430,11 +443,12 @@ export default function ManagerDashboard() {
   const todayDate = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (!addResModal || !newRes.checkIn || !newRes.checkOut || !newRes.roomType) return;
+    const isCreateResActive = activeSection === "create-res" || addResModal;
+    if (!isCreateResActive || !newRes.checkIn || !newRes.checkOut || !newRes.roomType) return;
     getAvailableRoomsForDates(newRes.roomType, newRes.checkIn, newRes.checkOut)
       .then((r) => setAvailableRoomsForRes(r || []))
       .catch(() => setAvailableRoomsForRes([]));
-  }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
+  }, [activeSection, addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
 
   const availableRooms = rooms.filter((r) => r.available !== false).length;
   const activeReservations = reservations.filter((r) => r.checkIn <= todayDate && r.checkOut >= todayDate).length;
@@ -469,12 +483,15 @@ export default function ManagerDashboard() {
         </div>
       )}
 
-      {(activeSection === "rooms" || activeSection === "pricing") && (
+      {activeSection === "rooms" && (
         <section className="mb-8">
           <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
             <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              {activeSection === "pricing" ? "Update Room Pricing" : "Manage Rooms"}
+              Manage Rooms
             </h2>
+            <p className="text-slate-600 mb-6">
+              Edit room details, update prices, or delete rooms.
+            </p>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {rooms.map((room, index) => (
                 <div
@@ -545,8 +562,81 @@ export default function ManagerDashboard() {
         </section>
       )}
 
-      {activeSection === "add-room" && (
+      {activeSection === "pricing" && (
         <section className="mb-8">
+          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
+            <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Update Pricing
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Quick price updates for each room. Changes apply immediately.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="w-full min-w-[500px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="text-left px-6 py-4 text-slate-700 font-semibold">Room</th>
+                    <th className="text-left px-6 py-4 text-slate-700 font-semibold">Type</th>
+                    <th className="text-left px-6 py-4 text-slate-700 font-semibold">Current Price</th>
+                    <th className="text-left px-6 py-4 text-slate-700 font-semibold">New Price</th>
+                    <th className="text-left px-6 py-4 text-slate-700 font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rooms.map((room) => (
+                    <tr key={room.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 text-slate-900 font-medium">#{room.roomNumber || room.id}</td>
+                      <td className="px-6 py-4 text-slate-700">{room.type}</td>
+                      <td className="px-6 py-4 text-cyan-700 font-semibold">LKR {room.price?.toLocaleString()}</td>
+                      <td className="px-6 py-4">
+                        {editingRoom?.id === room.id ? (
+                          <input
+                            type="number"
+                            value={editingRoom.price}
+                            onChange={(e) => setEditingRoom({ ...editingRoom, price: e.target.value })}
+                            className="w-32 px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none"
+                            placeholder="Price"
+                          />
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingRoom?.id === room.id ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleUpdateRoom}
+                              className="px-4 py-1.5 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 font-medium"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingRoom(null)}
+                              className="px-4 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300 font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setEditingRoom({ ...room })}
+                            className="px-4 py-1.5 bg-sky-50 text-sky-700 rounded-lg text-sm hover:bg-sky-100 font-medium"
+                          >
+                            Change
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "add-room" && (
+        <section className="mb-8 space-y-6">
           <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
             <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
               Add New Room
@@ -580,21 +670,108 @@ export default function ManagerDashboard() {
               </button>
             </div>
           </div>
+
+          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
+            <h3 className="text-xl font-serif text-slate-900 mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Added Rooms
+            </h3>
+            <p className="text-slate-600 text-sm mb-6">
+              Rooms you add appear here. Update price, edit details, or delete.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {rooms.map((room, index) => (
+                <div
+                  key={room.id}
+                  className="rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                    {(editingRoom?.id === room.id ? editingRoom.imageBase64 : room.imageBase64) ? (
+                      <img src={editingRoom?.id === room.id ? editingRoom.imageBase64 : room.imageBase64} alt={room.type} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-5xl text-slate-400">{(editingRoom?.id === room.id ? editingRoom?.type : room.type)?.charAt(0)}</span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    {editingRoom?.id === room.id ? (
+                      <div className="space-y-3">
+                        <select
+                          value={editingRoom.type}
+                          onChange={(e) => setEditingRoom({ ...editingRoom, type: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-sky-500 outline-none text-sm"
+                        >
+                          {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                        <input
+                          type="number"
+                          value={editingRoom.price}
+                          onChange={(e) => setEditingRoom({ ...editingRoom, price: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-sky-500 outline-none"
+                          placeholder="Price (LKR)"
+                        />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEditRoomImageChange}
+                          className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-sky-50 file:text-sky-700"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleUpdateRoom}
+                            className="flex-1 px-3 py-1.5 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 font-medium"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingRoom(null)}
+                            className="flex-1 px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300 font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-lg font-serif text-slate-900" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                          {room.type}
+                        </p>
+                        <p className="text-slate-700 font-semibold">LKR {room.price?.toLocaleString()}</p>
+                        <p className="text-sm text-slate-500 mb-3">Room #{room.roomNumber || room.id}</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditingRoom({ ...room })}
+                            className="flex-1 px-3 py-1.5 bg-sky-50 text-sky-700 rounded-lg text-sm hover:bg-sky-100 font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRoom(room.id)}
+                            className="flex-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm hover:bg-red-100 font-medium"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {rooms.length === 0 && (
+              <p className="text-slate-500 text-sm italic py-4">No rooms yet. Add your first room above.</p>
+            )}
+          </div>
         </section>
       )}
 
-      {(activeSection === "reservations" || activeSection === "create-res") && (
+      {activeSection === "reservations" && (
         <section className="mb-8">
-          <button
-            onClick={() => setAddResModal(true)}
-            className="mb-6 px-8 py-3 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-xl hover:shadow-lg hover:shadow-sky-500/50 transition-all duration-300 hover:scale-105 font-medium"
-          >
-            Create Walk-in Reservation
-          </button>
           <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
             <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Reservations
+              View Reservations
             </h2>
+            <p className="text-slate-600 mb-6">
+              All reservations across the resort. Use Cancel to cancel a booking.
+            </p>
             <ul className="space-y-3 max-h-[600px] overflow-y-auto">
               {reservations.map((resv, index) => (
                 <li
@@ -625,6 +802,90 @@ export default function ManagerDashboard() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "create-res" && (
+        <section className="mb-8">
+          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
+            <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Create Reservation
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Add a new walk-in or phone reservation. Select room type and dates first to see available rooms.
+            </p>
+            <div className="max-w-2xl space-y-4">
+              <input
+                placeholder="Guest Name"
+                value={newRes.guestName}
+                onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              />
+              <input
+                placeholder="Address"
+                value={newRes.address}
+                onChange={(e) => setNewRes({ ...newRes, address: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              />
+              <input
+                placeholder="Contact"
+                value={newRes.contactNumber}
+                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              />
+              <select
+                value={newRes.roomType}
+                onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              >
+                {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select
+                value={newRes.roomId}
+                onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              >
+                <option value="">Select room</option>
+                {availableRoomsForRes.map((room) => (
+                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={newRes.checkIn}
+                min={today}
+                onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              />
+              <input
+                type="date"
+                value={newRes.checkOut}
+                min={newRes.checkIn || today}
+                onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              />
+              <select
+                value={newRes.checkInTime}
+                onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              >
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select
+                value={newRes.checkOutTime}
+                onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
+              >
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <button
+                onClick={handleAddReservation}
+                className="w-full py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 hover:scale-105 font-medium"
+              >
+                Save Reservation
+              </button>
+            </div>
           </div>
         </section>
       )}

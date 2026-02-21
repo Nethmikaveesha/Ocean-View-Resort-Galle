@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRooms, getReservations, getCustomers, getAdmins, addRoom, updateRoom, addAdmin, updateAdmin, deleteAdmin, deleteRoom, addReservation, getAvailableRoomsForDates } from "../Services/api";
+import toast from "react-hot-toast";
+import { getRooms, getReservations, getCustomers, getAdmins, addRoom, updateRoom, addAdmin, updateAdmin, deleteAdmin, deleteRoom, addReservation, deleteReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 import StaffDashboardLayout, { MetricCard } from "../components/StaffDashboardLayout";
 import { ROLE_ADMIN, ADMIN_ROLE_OPTIONS, ADMIN_SUBROLES } from "../constants/roles";
@@ -83,7 +84,7 @@ export default function AdminDashboard() {
 
   const handleUpdateRoom = async () => {
     if (!editingRoom?.type || !editingRoom?.price) {
-      alert("Type and price are required.");
+      toast.error("Type and price are required.");
       return;
     }
     try {
@@ -93,26 +94,26 @@ export default function AdminDashboard() {
         imageBase64: editingRoom.imageBase64 || undefined,
         available: editingRoom.available ?? true,
       });
-      alert("Room updated successfully!");
+      toast.success("Room updated successfully!");
       setEditingRoom(null);
       fetchData();
     } catch (err) {
-      alert("Failed to update room: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed to update room: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
   const handleAddRoom = async () => {
     if (!newRoom.type || !newRoom.price) {
-      alert("Type and price are required.");
+      toast.error("Type and price are required.");
       return;
     }
     try {
       await addRoom({ type: newRoom.type, price: Number(newRoom.price), imageBase64: newRoom.imageBase64 || undefined, available: true });
-      alert("Room added successfully!");
+      toast.success("Room added successfully!");
       setNewRoom({ type: "Single", price: 10000, imageBase64: "" });
       fetchData();
     } catch (err) {
-      alert("Failed to add room: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed to add room: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -120,56 +121,67 @@ export default function AdminDashboard() {
     if (!window.confirm("Delete this room?")) return;
     try {
       await deleteRoom(id);
-      alert("Room deleted.");
+      toast.success("Room deleted.");
       fetchData();
     } catch (_) {
-      alert("Failed to delete.");
+      toast.error("Failed to delete.");
     }
   };
 
   const handleAddReservation = async () => {
     if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
-      alert("Please fill guest name, dates, and select a room.");
+      toast.error("Please fill guest name, dates, and select a room.");
       return;
     }
     try {
       await addReservation({ ...newRes, customerUsername: null });
-      alert("Reservation added successfully!");
+      toast.success("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
+    }
+  };
+
+  const handleCancelReservation = async (resv) => {
+    if (!window.confirm(`Cancel reservation ${resv.reservationNumber} for ${resv.guestName}?`)) return;
+    try {
+      await deleteReservation(resv.reservationNumber);
+      toast.success("Reservation cancelled.");
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to cancel: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
   const handleDeleteAdmin = async (adminToDelete) => {
     if (adminToDelete.username === localStorage.getItem("username")) {
-      alert("You cannot delete yourself.");
+      toast.error("You cannot delete yourself.");
       return;
     }
     if (!window.confirm(`Delete admin "${adminToDelete.username}"?`)) return;
     try {
       await deleteAdmin(adminToDelete.id);
-      alert("Admin deleted.");
+      toast.success("Admin deleted.");
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Cannot delete."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Cannot delete."));
     }
   };
 
   const handleAddAdmin = async () => {
     if (!newAdmin.username || !newAdmin.password || newAdmin.password.length < 6) {
-      alert("Username and password (min 6 chars) required.");
+      toast.error("Username and password (min 6 chars) required.");
       return;
     }
     try {
       await addAdmin(newAdmin);
-      alert("Admin created successfully!");
+      toast.success("Admin created successfully!");
       setNewAdmin({ username: "", password: "", role: ADMIN_SUBROLES.RECEPTIONIST });
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Username may already exist."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Username may already exist."));
     }
   };
 
@@ -181,11 +193,11 @@ export default function AdminDashboard() {
     }
     try {
       await updateAdmin(editingAdmin.id, payload);
-      alert("Admin updated successfully!");
+      toast.success("Admin updated successfully!");
       setEditingAdmin(null);
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
@@ -389,8 +401,11 @@ export default function AdminDashboard() {
         <section className="mb-8">
           <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
             <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Reservations
+              View Reservations
             </h2>
+            <p className="text-slate-600 mb-6">
+              All reservations. Use Cancel to cancel a booking.
+            </p>
             <ul className="space-y-3 max-h-[600px] overflow-y-auto">
               {reservations.map((resv, index) => (
                 <li
@@ -406,8 +421,16 @@ export default function AdminDashboard() {
                       </p>
                       <p className="text-cyan-700 font-semibold">LKR {resv.totalBill?.toLocaleString()}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                      {resv.roomType?.charAt(0)}
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                        {resv.roomType?.charAt(0)}
+                      </div>
+                      <button
+                        onClick={() => handleCancelReservation(resv)}
+                        className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100 transition-colors font-medium"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 </li>

@@ -281,6 +281,7 @@
 import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import toast from "react-hot-toast";
 import { addReservation, getAvailableRoomsForDates, getBill } from "../Services/api";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
@@ -367,12 +368,12 @@ export default function AddReservation() {
             a.href = url;
             a.download = `bill-${saved.reservationNumber}.pdf`;
             a.click();
-            alert("Thank you! Your reservation has been added. Bill calculated by server and downloaded.");
+            toast.success("Thank you! Your reservation has been added. Bill calculated by server and downloaded.");
           } catch (_) {
-            alert("Thank you! Your reservation has been added. Go to View Reservation to download your bill.");
+            toast.success("Thank you! Your reservation has been added. Go to View Reservation to download your bill.");
           }
         } else {
-          alert("Thank you! Your reservation has been added successfully.");
+          toast.success("Thank you! Your reservation has been added successfully.");
         }
         formik.resetForm({ values: { ...formik.initialValues, checkIn: today, checkOut: "", roomId: "", roomType: "Single" } });
         setAvailableRooms([]);
@@ -383,7 +384,7 @@ export default function AddReservation() {
             : null)
           || err?.message
           || "Please try again.";
-        alert("Error adding reservation: " + msg);
+        toast.error("Error adding reservation: " + msg);
       }
     },
   });

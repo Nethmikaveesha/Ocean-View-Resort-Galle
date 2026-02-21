@@ -109,6 +109,7 @@
 import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
+import toast from "react-hot-toast";
 import * as Yup from "yup";
 import api from "../Services/api";
 
@@ -141,11 +142,11 @@ export default function Register() {
     onSubmit: async (values) => {
       try {
         await api.post("/auth/register", values);
-        alert("Registration successful! Please log in.");
+        toast.success("Registration successful! Please log in.");
         navigate("/login");
       } catch (err) {
         const msg = err?.response?.data?.message || err?.response?.data?.errors?.username;
-        alert("Registration failed: " + (msg || "Username might be taken."));
+        toast.error("Registration failed: " + (msg || "Username might be taken."));
       }
     },
   });

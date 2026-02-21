@@ -157,6 +157,7 @@
 // }
 import React, { useEffect, useState } from "react";
 import { getMyReservations, getBill, updateReservation, deleteReservation } from "../Services/api";
+import toast from "react-hot-toast";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
@@ -215,12 +216,12 @@ export default function ViewReservation() {
         a.href = url;
         a.download = `bill-${resNumber}-updated.pdf`;
         a.click();
-        alert("Reservation updated. Bill recalculated and downloaded.");
+        toast.success("Reservation updated. Bill recalculated and downloaded.");
       } catch (_) {
-        alert("Reservation updated. You can download the updated bill using the button below.");
+        toast.success("Reservation updated. You can download the updated bill using the button below.");
       }
     } catch (err) {
-      alert("Failed to update: " + (err?.message || "Try again."));
+      toast.error("Failed to update: " + (err?.message || "Try again."));
     }
   };
 
@@ -228,10 +229,10 @@ export default function ViewReservation() {
     if (!window.confirm("Are you sure you want to delete this reservation?")) return;
     try {
       await deleteReservation(id);
-      alert("Reservation deleted.");
+      toast.success("Reservation deleted.");
       fetchReservations();
     } catch (err) {
-      alert("Failed to delete.");
+      toast.error("Failed to delete.");
     }
   };
 
@@ -244,7 +245,7 @@ export default function ViewReservation() {
       a.download = `bill-${reservationNumber}.pdf`;
       a.click();
     } catch (err) {
-      alert("Failed to download bill.");
+      toast.error("Failed to download bill.");
     }
   };
 

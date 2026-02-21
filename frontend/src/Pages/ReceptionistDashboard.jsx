@@ -199,7 +199,8 @@
 // }
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getRooms, getReservations, addReservation, getAvailableRoomsForDates } from "../Services/api";
+import toast from "react-hot-toast";
+import { getRooms, getReservations, addReservation, deleteReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 import StaffDashboardLayout, { MetricCard } from "../components/StaffDashboardLayout";
 import { ROLE_RECEPTIONIST } from "../constants/roles";
@@ -256,28 +257,40 @@ export default function ReceptionistDashboard() {
 
   const handleAddReservation = async () => {
     if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
-      alert("Please fill guest name, dates, and select a room.");
+      toast.error("Please fill guest name, dates, and select a room.");
       return;
     }
     try {
       await addReservation({ ...newRes, customerUsername: null });
-      alert("Reservation added successfully!");
+      toast.success("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      alert("Failed: " + (err?.response?.data?.message || "Try again."));
+      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
+    }
+  };
+
+  const handleCancelReservation = async (resv) => {
+    if (!window.confirm(`Cancel reservation ${resv.reservationNumber} for ${resv.guestName}?`)) return;
+    try {
+      await deleteReservation(resv.reservationNumber);
+      toast.success("Reservation cancelled.");
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to cancel: " + (err?.response?.data?.message || "Try again."));
     }
   };
 
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (!addResModal || !newRes.checkIn || !newRes.checkOut || !newRes.roomType) return;
+    const isWalkInActive = activeSection === "walk-in" || addResModal;
+    if (!isWalkInActive || !newRes.checkIn || !newRes.checkOut || !newRes.roomType) return;
     getAvailableRoomsForDates(newRes.roomType, newRes.checkIn, newRes.checkOut)
       .then((r) => setAvailableRoomsForRes(r || []))
       .catch(() => setAvailableRoomsForRes([]));
-  }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
+  }, [activeSection, addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
 
   const todayCheckIns = reservations.filter((r) => r.checkIn === today).length;
   const availableRooms = rooms.filter((r) => r.available !== false).length;
@@ -316,18 +329,99 @@ export default function ReceptionistDashboard() {
         </div>
       )}
 
-      {(activeSection === "walk-in" || activeSection === "reservations") && (
+      {activeSection === "walk-in" && (
         <section className="mb-8">
-          <button
-            onClick={() => setAddResModal(true)}
-            className="mb-6 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-105 font-medium"
-          >
-            Create Walk-in Reservation
-          </button>
           <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
             <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Reservations
+              Walk-in Reservation
             </h2>
+            <p className="text-slate-600 mb-6">
+              Add a new walk-in reservation for guests arriving at the front desk. Select room type and dates first to see available rooms.
+            </p>
+            <div className="max-w-2xl space-y-4">
+              <input
+                placeholder="Guest Name"
+                value={newRes.guestName}
+                onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              />
+              <input
+                placeholder="Address"
+                value={newRes.address}
+                onChange={(e) => setNewRes({ ...newRes, address: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              />
+              <input
+                placeholder="Contact"
+                value={newRes.contactNumber}
+                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              />
+              <select
+                value={newRes.roomType}
+                onChange={(e) => setNewRes({ ...newRes, roomType: e.target.value, roomId: "" })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              >
+                {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select
+                value={newRes.roomId}
+                onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              >
+                <option value="">Select room</option>
+                {availableRoomsForRes.map((room) => (
+                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={newRes.checkIn}
+                min={today}
+                onChange={(e) => setNewRes({ ...newRes, checkIn: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              />
+              <input
+                type="date"
+                value={newRes.checkOut}
+                min={newRes.checkIn || today}
+                onChange={(e) => setNewRes({ ...newRes, checkOut: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              />
+              <select
+                value={newRes.checkInTime}
+                onChange={(e) => setNewRes({ ...newRes, checkInTime: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              >
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select
+                value={newRes.checkOutTime}
+                onChange={(e) => setNewRes({ ...newRes, checkOutTime: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+              >
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <button
+                onClick={handleAddReservation}
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-105 font-medium"
+              >
+                Save Reservation
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {activeSection === "reservations" && (
+        <section className="mb-8">
+          <div className="rounded-3xl bg-white/70 backdrop-blur-lg border border-white/20 p-8 shadow-xl">
+            <h2 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              View Reservations
+            </h2>
+            <p className="text-slate-600 mb-6">
+              All reservations across the resort. Use Cancel to cancel a booking.
+            </p>
             <ul className="space-y-3 max-h-[600px] overflow-y-auto">
               {reservations.map((resv, index) => (
                 <li
@@ -343,8 +437,16 @@ export default function ReceptionistDashboard() {
                       </p>
                       <p className="text-cyan-700 font-semibold">LKR {resv.totalBill?.toLocaleString()}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                      {resv.roomType?.charAt(0)}
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                        {resv.roomType?.charAt(0)}
+                      </div>
+                      <button
+                        onClick={() => handleCancelReservation(resv)}
+                        className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100 transition-colors font-medium"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 </li>
