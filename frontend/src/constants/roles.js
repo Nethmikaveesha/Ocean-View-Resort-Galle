@@ -23,3 +23,20 @@ export const ADMIN_ROLE_OPTIONS = [
   { value: ADMIN_SUBROLES.MANAGER, label: "Manager" },
   { value: ADMIN_SUBROLES.RECEPTIONIST, label: "Receptionist" },
 ];
+
+/** Get display label for role (for success messages, form titles) */
+export const getRoleLabel = (role) => {
+  const r = (role || "").toUpperCase();
+  if (r === ADMIN_SUBROLES.ADMIN) return "Admin";
+  if (r === ADMIN_SUBROLES.MANAGER) return "Manager";
+  if (r === ADMIN_SUBROLES.RECEPTIONIST) return "Receptionist";
+  return "Staff";
+};
+
+/** Normalize role to match backend/option values */
+export const normalizeRole = (role) => {
+  const r = (role || "").toUpperCase();
+  return [ADMIN_SUBROLES.ADMIN, ADMIN_SUBROLES.MANAGER, ADMIN_SUBROLES.RECEPTIONIST].includes(r)
+    ? r
+    : ADMIN_SUBROLES.RECEPTIONIST;
+};

@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { getRooms, getReservations, getCustomers, getAdmins, addRoom, updateRoom, addAdmin, updateAdmin, deleteAdmin, deleteRoom, addReservation, deleteReservation, getAvailableRoomsForDates } from "../Services/api";
 import { AuthContext } from "../context/AuthContext";
 import StaffDashboardLayout, { MetricCard } from "../components/StaffDashboardLayout";
-import { ROLE_ADMIN, ADMIN_ROLE_OPTIONS, ADMIN_SUBROLES } from "../constants/roles";
+import { ROLE_ADMIN, ADMIN_ROLE_OPTIONS, ADMIN_SUBROLES, getRoleLabel, normalizeRole } from "../constants/roles";
 
 const ROOM_TYPES = ["Single", "Double", "Deluxe"];
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
@@ -129,18 +129,49 @@ export default function AdminDashboard() {
   };
 
   const handleAddReservation = async () => {
-    if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
-      toast.error("Please fill guest name, dates, and select a room.");
+    if (!newRes.guestName?.trim()) {
+      toast.error("Please fill guest name.");
+      return;
+    }
+    if (!newRes.address?.trim()) {
+      toast.error("Please fill address.");
+      return;
+    }
+    const contact = (newRes.contactNumber || "").replace(/\s/g, "");
+    if (!contact) {
+      toast.error("Please fill contact number.");
+      return;
+    }
+    if (!/^[0-9]{10}$/.test(contact)) {
+      toast.error("Contact number must be exactly 10 digits.");
+      return;
+    }
+    if (!newRes.checkIn || !newRes.checkOut) {
+      toast.error("Please select check-in and check-out dates.");
+      return;
+    }
+    if (!newRes.roomId) {
+      toast.error("Please select a room.");
       return;
     }
     try {
-      await addReservation({ ...newRes, customerUsername: null });
+      await addReservation({
+        ...newRes,
+        contactNumber: contact,
+        customerUsername: null,
+      });
       toast.success("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
+      const msg =
+        err?.response?.data?.message ||
+        (err?.response?.data?.errors && typeof err.response.data.errors === "object"
+          ? Object.values(err.response.data.errors).flat().filter(Boolean).join(", ")
+          : null) ||
+        "Try again.";
+      toast.error("Failed: " + msg);
     }
   };
 
@@ -160,10 +191,11 @@ export default function AdminDashboard() {
       toast.error("You cannot delete yourself.");
       return;
     }
-    if (!window.confirm(`Delete admin "${adminToDelete.username}"?`)) return;
+    const roleLabel = getRoleLabel(adminToDelete.role);
+    if (!window.confirm(`Delete ${roleLabel.toLowerCase()} "${adminToDelete.username}"?`)) return;
     try {
       await deleteAdmin(adminToDelete.id);
-      toast.success("Admin deleted.");
+      toast.success(`${roleLabel} deleted successfully.`);
       fetchData();
     } catch (err) {
       toast.error("Failed: " + (err?.response?.data?.message || "Cannot delete."));
@@ -175,9 +207,10 @@ export default function AdminDashboard() {
       toast.error("Username and password (min 6 chars) required.");
       return;
     }
+    const roleLabel = getRoleLabel(newAdmin.role);
     try {
       await addAdmin(newAdmin);
-      toast.success("Admin created successfully!");
+      toast.success(`${roleLabel} added successfully!`);
       setNewAdmin({ username: "", password: "", role: ADMIN_SUBROLES.RECEPTIONIST });
       fetchData();
     } catch (err) {
@@ -191,9 +224,10 @@ export default function AdminDashboard() {
     if (editingAdmin.password && editingAdmin.password.length >= 6) {
       payload.password = editingAdmin.password;
     }
+    const roleLabel = getRoleLabel(editingAdmin.role);
     try {
       await updateAdmin(editingAdmin.id, payload);
-      toast.success("Admin updated successfully!");
+      toast.success(`${roleLabel} updated successfully!`);
       setEditingAdmin(null);
       fetchData();
     } catch (err) {
@@ -209,6 +243,18 @@ export default function AdminDashboard() {
       .then((r) => setAvailableRoomsForRes(r || []))
       .catch(() => setAvailableRoomsForRes([]));
   }, [addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
+
+  const roomsOfType = rooms.filter((r) => r.type === newRes.roomType);
+  const availableRoomIds = new Set(availableRoomsForRes.map((r) => r.id));
+
+  useEffect(() => {
+    if (addResModal && newRes.roomId && newRes.checkIn && newRes.checkOut) {
+      const stillAvailable = availableRoomsForRes.some((r) => r.id === newRes.roomId);
+      if (!stillAvailable) {
+        setNewRes((prev) => ({ ...prev, roomId: "" }));
+      }
+    }
+  }, [addResModal, newRes.roomId, newRes.checkIn, newRes.checkOut, availableRoomsForRes]);
 
   const staffCount = admins.length;
   const todayDate = new Date().toISOString().split("T")[0];
@@ -275,7 +321,7 @@ export default function AdminDashboard() {
                 onClick={handleAddAdmin}
                 className="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-xl hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300 hover:scale-105 font-medium"
               >
-                Add Admin
+                Add {getRoleLabel(newAdmin.role)}
               </button>
             </div>
             <ul className="space-y-2">
@@ -296,7 +342,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setEditingAdmin({ id: a.id, username: a.username, role: a.role, password: "" })}
+                      onClick={() => setEditingAdmin({ id: a.id, username: a.username, role: normalizeRole(a.role), password: "" })}
                       className="px-4 py-1.5 bg-cyan-50 text-cyan-700 rounded-lg text-sm hover:bg-cyan-100 transition-colors font-medium"
                     >
                       Edit
@@ -585,12 +631,12 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Edit Admin Modal */}
+      {/* Edit Admin/Manager/Receptionist Modal */}
       {editingAdmin && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.3s_ease-out]">
           <div className="bg-white/90 backdrop-blur-lg p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-white/20 animate-[slideUp_0.3s_ease-out]">
             <h3 className="text-2xl font-serif text-slate-900 mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Edit Admin
+              Edit {getRoleLabel(editingAdmin.role)}
             </h3>
             <div className="space-y-4">
               <div>
@@ -650,21 +696,22 @@ export default function AdminDashboard() {
             </h3>
             <div className="space-y-4">
               <input
-                placeholder="Guest Name"
+                placeholder="Guest Name *"
                 value={newRes.guestName}
                 onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 outline-none"
               />
               <input
-                placeholder="Address"
+                placeholder="Address *"
                 value={newRes.address}
                 onChange={(e) => setNewRes({ ...newRes, address: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 outline-none"
               />
               <input
-                placeholder="Contact"
+                placeholder="Contact (10 digits) *"
                 value={newRes.contactNumber}
-                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })}
+                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                maxLength={10}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 outline-none"
               />
               <select
@@ -674,16 +721,35 @@ export default function AdminDashboard() {
               >
                 {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-              <select
-                value={newRes.roomId}
-                onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 outline-none"
-              >
-                <option value="">Select room</option>
-                {availableRoomsForRes.map((room) => (
-                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Select Room</label>
+                <select
+                  value={newRes.roomId}
+                  onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 outline-none"
+                >
+                  <option value="">Select room</option>
+                  {roomsOfType.map((room) => {
+                    const hasDates = newRes.checkIn && newRes.checkOut;
+                    const isAvailable = !hasDates || availableRoomIds.has(room.id);
+                    const price = room.price != null ? Number(room.price).toLocaleString() : "—";
+                    const roomNum = room.roomNumber || `#${(room.id || "").slice(-6)}`;
+                    const status = hasDates ? (isAvailable ? "✓ Available" : "✗ Booked") : "";
+                    return (
+                      <option
+                        key={room.id}
+                        value={room.id}
+                        disabled={!isAvailable}
+                      >
+                        {room.type} • Room {roomNum} • LKR {price} {status && `(${status})`}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  {roomsOfType.length} {newRes.roomType} room(s). {newRes.checkIn && newRes.checkOut ? "Available rooms only shown as selectable." : "Select check-in and check-out dates to see availability."}
+                </p>
+              </div>
               <input
                 type="date"
                 value={newRes.checkIn}
