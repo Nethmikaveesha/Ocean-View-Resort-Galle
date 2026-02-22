@@ -144,18 +144,49 @@ export default function ManagerDashboard() {
   };
 
   const handleAddReservation = async () => {
-    if (!newRes.guestName || !newRes.checkIn || !newRes.checkOut || !newRes.roomId) {
-      toast.error("Please fill guest name, dates, and select a room.");
+    if (!newRes.guestName?.trim()) {
+      toast.error("Please fill guest name.");
+      return;
+    }
+    if (!newRes.address?.trim()) {
+      toast.error("Please fill address.");
+      return;
+    }
+    const contact = (newRes.contactNumber || "").replace(/\s/g, "");
+    if (!contact) {
+      toast.error("Please fill contact number.");
+      return;
+    }
+    if (!/^[0-9]{10}$/.test(contact)) {
+      toast.error("Contact number must be exactly 10 digits.");
+      return;
+    }
+    if (!newRes.checkIn || !newRes.checkOut) {
+      toast.error("Please select check-in and check-out dates.");
+      return;
+    }
+    if (!newRes.roomId) {
+      toast.error("Please select a room.");
       return;
     }
     try {
-      await addReservation({ ...newRes, customerUsername: null });
+      await addReservation({
+        ...newRes,
+        contactNumber: contact,
+        customerUsername: null,
+      });
       toast.success("Reservation added successfully!");
       setAddResModal(false);
       setNewRes({ guestName: "", address: "", contactNumber: "", roomType: "Single", roomId: "", checkIn: "", checkOut: "", checkInTime: "12:00 PM", checkOutTime: "11:00 AM" });
       fetchData();
     } catch (err) {
-      toast.error("Failed: " + (err?.response?.data?.message || "Try again."));
+      const msg =
+        err?.response?.data?.message ||
+        (err?.response?.data?.errors && typeof err.response.data.errors === "object"
+          ? Object.values(err.response.data.errors).flat().filter(Boolean).join(", ")
+          : null) ||
+        "Try again.";
+      toast.error("Failed: " + msg);
     }
   };
 
@@ -398,21 +429,22 @@ export default function ManagerDashboard() {
             </p>
             <div className="max-w-2xl space-y-4">
               <input
-                placeholder="Guest Name"
+                placeholder="Guest Name *"
                 value={newRes.guestName}
                 onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
               />
               <input
-                placeholder="Address"
+                placeholder="Address *"
                 value={newRes.address}
                 onChange={(e) => setNewRes({ ...newRes, address: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
               />
               <input
-                placeholder="Contact"
+                placeholder="Contact (10 digits) *"
                 value={newRes.contactNumber}
-                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })}
+                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                maxLength={10}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
               />
               <select
@@ -590,21 +622,22 @@ export default function ManagerDashboard() {
             </h3>
             <div className="space-y-4">
               <input
-                placeholder="Guest Name"
+                placeholder="Guest Name *"
                 value={newRes.guestName}
                 onChange={(e) => setNewRes({ ...newRes, guestName: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
               />
               <input
-                placeholder="Address"
+                placeholder="Address *"
                 value={newRes.address}
                 onChange={(e) => setNewRes({ ...newRes, address: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
               />
               <input
-                placeholder="Contact"
+                placeholder="Contact (10 digits) *"
                 value={newRes.contactNumber}
-                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value })}
+                onChange={(e) => setNewRes({ ...newRes, contactNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                maxLength={10}
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all duration-300 outline-none"
               />
               <select
