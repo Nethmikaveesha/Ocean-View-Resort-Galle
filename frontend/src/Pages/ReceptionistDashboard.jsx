@@ -292,6 +292,19 @@ export default function ReceptionistDashboard() {
       .catch(() => setAvailableRoomsForRes([]));
   }, [activeSection, addResModal, newRes.checkIn, newRes.checkOut, newRes.roomType]);
 
+  const roomsOfType = rooms.filter((r) => r.type === newRes.roomType);
+  const availableRoomIds = new Set(availableRoomsForRes.map((r) => r.id));
+
+  useEffect(() => {
+    const isWalkInActive = activeSection === "walk-in" || addResModal;
+    if (isWalkInActive && newRes.roomId && newRes.checkIn && newRes.checkOut) {
+      const stillAvailable = availableRoomsForRes.some((r) => r.id === newRes.roomId);
+      if (!stillAvailable) {
+        setNewRes((prev) => ({ ...prev, roomId: "" }));
+      }
+    }
+  }, [activeSection, addResModal, newRes.roomId, newRes.checkIn, newRes.checkOut, availableRoomsForRes]);
+
   const todayCheckIns = reservations.filter((r) => r.checkIn === today).length;
   const availableRooms = rooms.filter((r) => r.available !== false).length;
   const occupiedRooms = reservations.filter((r) => {
@@ -364,16 +377,35 @@ export default function ReceptionistDashboard() {
               >
                 {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-              <select
-                value={newRes.roomId}
-                onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
-              >
-                <option value="">Select room</option>
-                {availableRoomsForRes.map((room) => (
-                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Select Room</label>
+                <select
+                  value={newRes.roomId}
+                  onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+                >
+                  <option value="">Select room</option>
+                  {roomsOfType.map((room) => {
+                    const hasDates = newRes.checkIn && newRes.checkOut;
+                    const isAvailable = !hasDates || availableRoomIds.has(room.id);
+                    const price = room.price != null ? Number(room.price).toLocaleString() : "—";
+                    const roomNum = room.roomNumber || `#${(room.id || "").slice(-6)}`;
+                    const status = hasDates ? (isAvailable ? "✓ Available" : "✗ Booked") : "";
+                    return (
+                      <option
+                        key={room.id}
+                        value={room.id}
+                        disabled={!isAvailable}
+                      >
+                        {room.type} • Room {roomNum} • LKR {price} {status && `(${status})`}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  {roomsOfType.length} {newRes.roomType} room(s). {newRes.checkIn && newRes.checkOut ? "Available rooms only shown as selectable." : "Select check-in and check-out dates to see availability."}
+                </p>
+              </div>
               <input
                 type="date"
                 value={newRes.checkIn}
@@ -608,16 +640,35 @@ export default function ReceptionistDashboard() {
               >
                 {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-              <select
-                value={newRes.roomId}
-                onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
-              >
-                <option value="">Select room</option>
-                {availableRoomsForRes.map((room) => (
-                  <option key={room.id} value={room.id}>{room.type} #{room.roomNumber || room.id} - LKR {room.price}</option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Select Room</label>
+                <select
+                  value={newRes.roomId}
+                  onChange={(e) => setNewRes({ ...newRes, roomId: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-300 outline-none"
+                >
+                  <option value="">Select room</option>
+                  {roomsOfType.map((room) => {
+                    const hasDates = newRes.checkIn && newRes.checkOut;
+                    const isAvailable = !hasDates || availableRoomIds.has(room.id);
+                    const price = room.price != null ? Number(room.price).toLocaleString() : "—";
+                    const roomNum = room.roomNumber || `#${(room.id || "").slice(-6)}`;
+                    const status = hasDates ? (isAvailable ? "✓ Available" : "✗ Booked") : "";
+                    return (
+                      <option
+                        key={room.id}
+                        value={room.id}
+                        disabled={!isAvailable}
+                      >
+                        {room.type} • Room {roomNum} • LKR {price} {status && `(${status})`}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  {roomsOfType.length} {newRes.roomType} room(s). {newRes.checkIn && newRes.checkOut ? "Available rooms only shown as selectable." : "Select check-in and check-out dates to see availability."}
+                </p>
+              </div>
               <input
                 type="date"
                 value={newRes.checkIn}

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getRooms, checkRoomAvailability, getAvailableRoomsForDates } from "../Services/api";
+import { STAFF_ROLES } from "../constants/roles";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
@@ -109,6 +110,7 @@ export default function CheckAvailability() {
   };
 
   const anyAvailable = availableRoomsList.length > 0;
+  const isStaff = STAFF_ROLES.includes(localStorage.getItem("userRole") || "");
 
   const handleRegister = () => {
     if (!selectedRoom) {
@@ -145,9 +147,9 @@ export default function CheckAvailability() {
           <h2 className="text-4xl sm:text-5xl font-serif mb-4 text-slate-900" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             Check Availability
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          {/* <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Select your dates to see which rooms are available. Only if rooms are available can you register and make a reservation.
-          </p>
+          </p> */}
           {redirectMessage && (
             <div className="mt-4 p-4 bg-amber-100 border border-amber-300 rounded-xl text-amber-900 max-w-2xl mx-auto">
               {redirectMessage}
@@ -310,7 +312,11 @@ export default function CheckAvailability() {
                 Great News!
               </h3>
               <p className="text-teal-800 text-lg font-medium">Rooms are available for your selected dates!</p>
-              <p className="text-teal-700 mt-2">Select your preferred room, then register or log in to complete your reservation.</p>
+              <p className="text-teal-700 mt-2">
+                {isStaff
+                  ? "These rooms are available for the selected dates. Use Walk-in Reservation in your dashboard to book for guests."
+                  : "Select your preferred room, then register or log in to complete your reservation."}
+              </p>
             </div>
 
             <div className="mb-8">
@@ -354,7 +360,7 @@ export default function CheckAvailability() {
               </div>
             </div>
 
-            {!selectedRoom && (
+            {!isStaff && !selectedRoom && (
               <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6">
                 <p className="text-amber-800 text-sm font-medium flex items-center gap-2">
                   <span className="text-xl">👆</span>
@@ -363,30 +369,32 @@ export default function CheckAvailability() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-4 justify-center">
-              <button
-                onClick={handleRegister}
-                disabled={!selectedRoom}
-                className={`px-8 py-4 rounded-xl font-medium text-lg transition-all duration-300 ${
-                  selectedRoom
-                    ? "bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-2xl hover:shadow-teal-500/50 hover:scale-105"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                Register New Account
-              </button>
-              <button
-                onClick={handleLogin}
-                disabled={!selectedRoom}
-                className={`px-8 py-4 rounded-xl font-medium text-lg transition-all duration-300 ${
-                  selectedRoom
-                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:shadow-2xl hover:shadow-cyan-500/50 hover:scale-105"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                Login to Existing Account
-              </button>
-            </div>
+            {!isStaff && (
+              <div className="flex flex-wrap gap-4 justify-center">
+                <button
+                  onClick={handleRegister}
+                  disabled={!selectedRoom}
+                  className={`px-8 py-4 rounded-xl font-medium text-lg transition-all duration-300 ${
+                    selectedRoom
+                      ? "bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-2xl hover:shadow-teal-500/50 hover:scale-105"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  Register New Account
+                </button>
+                <button
+                  onClick={handleLogin}
+                  disabled={!selectedRoom}
+                  className={`px-8 py-4 rounded-xl font-medium text-lg transition-all duration-300 ${
+                    selectedRoom
+                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:shadow-2xl hover:shadow-cyan-500/50 hover:scale-105"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  Login to Existing Account
+                </button>
+              </div>
+            )}
           </div>
         )}
 

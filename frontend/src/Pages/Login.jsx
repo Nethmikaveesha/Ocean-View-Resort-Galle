@@ -1,6 +1,7 @@
 
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import { loginUser } from "../Services/authService";
 import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST } from "../constants/roles";
@@ -36,11 +37,11 @@ export default function Login() {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("username", username);
         login({ role, username });
+        toast.success("You have logged in successfully.");
         if (role === ROLE_ADMIN) navigate("/admin");
         else if (role === ROLE_MANAGER) navigate("/admin/manager");
         else if (role === ROLE_RECEPTIONIST) navigate("/admin/receptionist");
-        else if (role === "customer")
-          navigate(fromCheckAvailability() ? "/add-reservation" : "/view-reservation");
+        else if (role === "customer") navigate("/customer-dashboard", { replace: true });
       } else {
         setError("Invalid credentials");
       }

@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import { loginUser } from "../Services/authService";
 import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST, STAFF_ROLES } from "../constants/roles";
@@ -47,6 +48,7 @@ export default function StaffLogin() {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("username", username);
         login({ role, username });
+        toast.success("You have logged in successfully.");
         const target = STAFF_DASHBOARD_PATHS[role];
         navigate(target || "/admin");
       } else {

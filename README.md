@@ -1,1 +1,0 @@
-# Ocean-View-Resort-Galle

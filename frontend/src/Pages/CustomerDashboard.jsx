@@ -102,9 +102,9 @@ export default function CustomerDashboard() {
               </h3>
               <p className="text-slate-600">Recent bookings and upcoming stays</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl text-white shadow-lg">
+            {/* <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl text-white shadow-lg">
               📅
-            </div>
+            </div> */}
           </div>
 
           {reservations.length === 0 ? (
@@ -164,7 +164,7 @@ export default function CustomerDashboard() {
                     </div>
                     
                     <Link
-                      to="/view-reservation"
+                      to={`/view-reservation/${resv.reservationNumber}`}
                       className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 text-center"
                     >
                       View Details

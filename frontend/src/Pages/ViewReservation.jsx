@@ -1,11 +1,13 @@
 
 import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { getMyReservations, getBill, updateReservation, deleteReservation } from "../Services/api";
 import toast from "react-hot-toast";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function ViewReservation() {
+  const { reservationNumber: paramNumber } = useParams();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -14,6 +16,10 @@ export default function ViewReservation() {
 
   const username = localStorage.getItem("username") || "";
   const today = new Date().toISOString().split("T")[0];
+
+  const toShow = paramNumber
+    ? reservations.filter((r) => r.reservationNumber === paramNumber)
+    : reservations;
 
   const fetchReservations = async () => {
     try {
@@ -139,9 +145,33 @@ export default function ViewReservation() {
             </h3>
             <p className="text-slate-600">You haven't made any reservations. Start booking your dream vacation!</p>
           </div>
+        ) : paramNumber && toShow.length === 0 ? (
+          <div className="bg-white/60 backdrop-blur-sm border-2 border-slate-200 rounded-3xl p-12 text-center shadow-lg animate-[fadeInUp_0.9s_ease-out]">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Reservation Not Found
+            </h3>
+            <p className="text-slate-600 mb-6">This reservation may have been cancelled or the link is invalid.</p>
+            <Link
+              to="/view-reservation"
+              className="inline-block px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
+            >
+              View All Reservations
+            </Link>
+          </div>
         ) : (
           <div className="grid gap-6 animate-[fadeInUp_0.9s_ease-out]">
-            {reservations.map((res, index) => (
+            {paramNumber && (
+              <div className="mb-4">
+                <Link
+                  to="/view-reservation"
+                  className="inline-flex items-center gap-2 text-cyan-600 hover:text-cyan-700 font-medium"
+                >
+                  ← Back to all reservations
+                </Link>
+              </div>
+            )}
+            {toShow.map((res, index) => (
               <div
                 key={res.reservationNumber}
                 className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300"

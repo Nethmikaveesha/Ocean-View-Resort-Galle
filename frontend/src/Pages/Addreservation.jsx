@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
-import { addReservation, getAvailableRoomsForDates, getBill } from "../Services/api";
+import { addReservation, getAvailableRoomsForDates, getBill, getRooms } from "../Services/api";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
@@ -36,6 +36,7 @@ function getInitialValuesFromSession() {
 }
 
 export default function AddReservation() {
+  const [rooms, setRooms] = useState([]);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [previewBill, setPreviewBill] = useState(0);
   const username = localStorage.getItem("username") || "";
@@ -112,6 +113,10 @@ export default function AddReservation() {
   });
 
   useEffect(() => {
+    getRooms().then((r) => setRooms(r || [])).catch(() => setRooms([]));
+  }, []);
+
+  useEffect(() => {
     const { checkIn, checkOut, roomType } = formik.values;
     if (!checkIn || !checkOut || !roomType) {
       setAvailableRooms([]);
@@ -119,14 +124,17 @@ export default function AddReservation() {
       return;
     }
     getAvailableRoomsForDates(roomType, checkIn, checkOut)
-      .then((rooms) => {
-        setAvailableRooms(rooms || []);
-        if (!rooms?.some((r) => r.id === formik.values.roomId)) {
+      .then((avail) => {
+        setAvailableRooms(avail || []);
+        if (!avail?.some((r) => r.id === formik.values.roomId)) {
           formik.setFieldValue("roomId", "");
         }
       })
       .catch(() => setAvailableRooms([]));
   }, [formik.values.checkIn, formik.values.checkOut, formik.values.roomType]);
+
+  const roomsOfType = rooms.filter((r) => r.type === formik.values.roomType);
+  const availableRoomIds = new Set(availableRooms.map((r) => r.id));
 
   useEffect(() => {
     const { roomId, checkIn, checkOut } = formik.values;
@@ -134,7 +142,7 @@ export default function AddReservation() {
       setPreviewBill(0);
       return;
     }
-    const room = availableRooms.find((r) => r.id === roomId);
+    const room = rooms.find((r) => r.id === roomId) || availableRooms.find((r) => r.id === roomId);
     if (!room) {
       setPreviewBill(0);
       return;
@@ -143,9 +151,10 @@ export default function AddReservation() {
     const end = new Date(checkOut);
     const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
     setPreviewBill(nights * room.price);
-  }, [formik.values.roomId, formik.values.checkIn, formik.values.checkOut, availableRooms]);
+  }, [formik.values.roomId, formik.values.checkIn, formik.values.checkOut, rooms, availableRooms]);
 
-  const roomAvailable = availableRooms.length > 0;
+  const hasDates = formik.values.checkIn && formik.values.checkOut;
+  const isSelectedRoomAvailable = hasDates && formik.values.roomId && availableRoomIds.has(formik.values.roomId);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-amber-50 py-12 px-4">
@@ -251,14 +260,24 @@ export default function AddReservation() {
                 value={formik.values.roomId}
               >
                 <option value="">-- Select a room --</option>
-                {availableRooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.type} - #{room.roomNumber || room.id} - LKR {room.price?.toLocaleString()}/night
-                  </option>
-                ))}
+                {roomsOfType.map((room) => {
+                  const isAvailable = !hasDates || availableRoomIds.has(room.id);
+                  const price = room.price != null ? Number(room.price).toLocaleString() : "—";
+                  const roomNum = room.roomNumber || `#${(room.id || "").slice(-6)}`;
+                  const status = hasDates ? (isAvailable ? "✓ Available" : "✗ Booked") : "";
+                  return (
+                    <option key={room.id} value={room.id} disabled={!isAvailable}>
+                      {room.type} • Room {roomNum} • LKR {price}/night {status && `(${status})`}
+                    </option>
+                  );
+                })}
               </select>
-              {!roomAvailable && formik.values.checkIn && formik.values.checkOut && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
+              <p className="text-xs text-slate-500 mt-1">
+                {roomsOfType.length} {formik.values.roomType} room(s).
+                {hasDates ? " Available rooms only shown as selectable." : " Select check-in and check-out dates to see availability."}
+              </p>
+              {hasDates && availableRooms.length === 0 && (
+                <p className="text-amber-600 text-sm mt-1 flex items-center gap-1">
                   <span>⚠️</span> No rooms available for selected dates.
                 </p>
               )}
@@ -358,9 +377,9 @@ export default function AddReservation() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!roomAvailable || !formik.values.roomId}
+              disabled={!isSelectedRoomAvailable}
               className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-300 ${
-                roomAvailable && formik.values.roomId
+                isSelectedRoomAvailable
                   ? "bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:shadow-2xl hover:shadow-teal-500/50 hover:scale-105"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}

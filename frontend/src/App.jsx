@@ -59,7 +59,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/view-reservation"
+              path="/view-reservation/:reservationNumber?"
               element={
                 <ProtectedRoute role={ROLE_CUSTOMER}>
                   <ViewReservation />
