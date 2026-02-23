@@ -57,7 +57,7 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <button
-                onClick={() => navigate("/check")}
+                onClick={() => document.getElementById("experience-luxury")?.scrollIntoView({ behavior: "smooth" })}
                 className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 text-lg"
               >
                 Check Availability
@@ -83,7 +83,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto px-6 sm:px-8 py-16 sm:py-24">
         {/* Introduction */}
-        <div className="text-center mb-16 animate-[fadeIn_0.8s_ease-out]">
+        <div id="experience-luxury" className="text-center mb-16 animate-[fadeIn_0.8s_ease-out] scroll-mt-20">
           <div className="inline-block mb-4">
             <span className="text-cyan-700 text-sm font-medium tracking-[0.3em] uppercase border-b-2 border-cyan-700 pb-2">
               Experience Luxury
@@ -151,7 +151,7 @@ export default function Home() {
                     {/* Overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
                       <button 
-                        onClick={() => navigate("/check")}
+                        onClick={() => navigate("/check", { state: { preselectedRoom: { id: room.id, type: room.type, price: room.price, roomNumber: room.roomNumber } } })}
                         className="px-6 py-2 bg-white text-slate-900 rounded-full font-medium hover:bg-cyan-50 transition-colors duration-300"
                       >
                         Check Availability
@@ -198,16 +198,9 @@ export default function Home() {
                 <h3 className="text-3xl sm:text-4xl font-serif text-white mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                   Ready to Experience Paradise?
                 </h3>
-                <p className="text-slate-300 mb-8 max-w-2xl mx-auto text-lg">
+                <p className="text-slate-300 max-w-2xl mx-auto text-lg">
                   Check availability for your preferred dates and secure your dream vacation at Ocean View Resort
                 </p>
-                <button
-                  onClick={() => navigate("/check")}
-                  className="px-10 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-medium hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 text-lg inline-flex items-center gap-2"
-                >
-                  Check Availability Now
-                  <span className="text-2xl">→</span>
-                </button>
               </div>
             </div>
           </div>

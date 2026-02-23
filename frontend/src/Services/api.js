@@ -17,6 +17,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isLoginRequest = error?.config?.url?.includes("/auth/login") ?? false;
+    if (error?.response?.status === 401 && !isLoginRequest) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("username");
+      localStorage.removeItem("user");
+      const isStaffRoute = window.location.pathname.startsWith("/admin");
+      window.location.href = isStaffRoute ? "/staff-login" : "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const addReservation = async (reservationData) => {
   const res = await api.post("/reservations", reservationData);
   return res.data;
@@ -96,6 +112,11 @@ export const getAdmins = async () => {
 
 export const addAdmin = async (adminData) => {
   await api.post("/admins", adminData);
+};
+
+export const updateAdmin = async (id, adminData) => {
+  const res = await api.put(`/admins/${id}`, adminData);
+  return res.data;
 };
 
 export const deleteAdmin = async (id) => {

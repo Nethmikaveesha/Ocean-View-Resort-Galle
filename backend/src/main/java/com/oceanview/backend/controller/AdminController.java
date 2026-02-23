@@ -44,6 +44,34 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Admin deleted"));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAdmin(@PathVariable String id, @Valid @RequestBody AdminUpdateRequest request) {
+        return adminRepository.findById(id)
+                .map(admin -> {
+                    if (request.getRole() != null && !request.getRole().isBlank()) {
+                        admin.setRole(request.getRole().toUpperCase());
+                    }
+                    if (request.getPassword() != null && !request.getPassword().isBlank() && request.getPassword().length() >= 6) {
+                        admin.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+                    }
+                    adminRepository.save(admin);
+                    return ResponseEntity.ok(Map.of("message", "Admin updated"));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    public static class AdminUpdateRequest {
+        private String role; // ADMIN, MANAGER, RECEPTIONIST
+        @Size(min = 6, message = "Password must be at least 6 characters")
+        private String password; // optional - only update if provided
+
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+
     @PostMapping
     public ResponseEntity<?> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
         if (adminRepository.findByUsername(request.getUsername()).isPresent()) {

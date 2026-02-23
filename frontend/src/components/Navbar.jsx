@@ -182,12 +182,6 @@ export default function Navbar() {
                 <Link to="/customer-dashboard" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
                   Dashboard
                 </Link>
-                <Link to="/add-reservation" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
-                  Add Reservation
-                </Link>
-                <Link to="/view-reservation" className="text-slate-200 hover:text-cyan-400 transition-colors font-medium">
-                  My Reservations
-                </Link>
                 <button
                   onClick={handleLogout}
                   className="px-5 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 font-medium"
@@ -315,20 +309,6 @@ export default function Navbar() {
                     className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
                   >
                     Dashboard
-                  </Link>
-                  <Link
-                    to="/add-reservation"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
-                  >
-                    Add Reservation
-                  </Link>
-                  <Link
-                    to="/view-reservation"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-2 text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
-                  >
-                    My Reservations
                   </Link>
                   <button
                     onClick={handleLogout}

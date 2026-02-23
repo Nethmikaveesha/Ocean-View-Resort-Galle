@@ -1,4 +1,5 @@
 import React from "react";
+import { Toaster } from "react-hot-toast";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { ROLE_ADMIN, ROLE_MANAGER, ROLE_RECEPTIONIST, ROLE_CUSTOMER } from "./constants/roles";
 import { AuthProvider } from "./context/AuthContext";
@@ -58,7 +59,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/view-reservation"
+              path="/view-reservation/:reservationNumber?"
               element={
                 <ProtectedRoute role={ROLE_CUSTOMER}>
                   <ViewReservation />
@@ -104,6 +105,15 @@ function App() {
     <AuthProvider>
       <Router>
         <AppContent />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: { background: "#1e293b", color: "#f8fafc", borderRadius: "12px" },
+            success: { iconTheme: { primary: "#10b981", secondary: "#f8fafc" } },
+            error: { iconTheme: { primary: "#ef4444", secondary: "#f8fafc" } },
+          }}
+        />
       </Router>
     </AuthProvider>
   );

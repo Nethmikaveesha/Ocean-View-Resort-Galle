@@ -1,6 +1,7 @@
 package com.oceanview.backend.config;
 
-import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,7 +37,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(token); // Make sure this method exists in JwtUtil
+            try {
+                username = jwtUtil.extractUsername(token);
+            } catch (ExpiredJwtException e) {
+                // Token expired - do not authenticate; request will fail with 401 on protected routes
+                request.setAttribute("jwtExpired", Boolean.TRUE);
+            } catch (JwtException e) {
+                // Invalid or malformed token - do not authenticate
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

@@ -1,52 +1,4 @@
-// import React, { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
-// import { getMyReservations } from "../Services/api";
 
-// export default function CustomerDashboard() {
-//   const [reservations, setReservations] = useState([]);
-//   const username = localStorage.getItem("username") || "";
-
-//   useEffect(() => {
-//     const fetch = async () => {
-//       try {
-//         const data = await getMyReservations(username);
-//         setReservations(data || []);
-//       } catch (_) {
-//         setReservations([]);
-//       }
-//     };
-//     fetch();
-//   }, [username]);
-
-//   return (
-//     <div className="p-8">
-//       <h2 className="text-2xl font-bold mb-4">My Reservations</h2>
-//       <Link to="/add-reservation" className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add New Reservation</Link>
-
-//       {reservations.length === 0 ? (
-//         <p>No reservations found. <Link to="/add-reservation" className="text-blue-600 underline">Add one</Link>.</p>
-//       ) : (
-//         <div className="space-y-4">
-//           {reservations.map((resv) => (
-//             <div key={resv.reservationNumber} className="border p-4 rounded">
-//               <p><strong>Reservation #:</strong> {resv.reservationNumber}</p>
-//               <p><strong>Guest Name:</strong> {resv.guestName}</p>
-//               <p><strong>Room Type:</strong> {resv.roomType}</p>
-//               <p><strong>Check-in:</strong> {resv.checkIn}</p>
-//               <p><strong>Check-out:</strong> {resv.checkOut}</p>
-//               <p><strong>Bill:</strong> LKR {resv.totalBill}</p>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-
-//       <div className="mt-6 flex gap-4">
-//         <Link to="/add-reservation" className="text-blue-600 underline">Add Reservation</Link>
-//         <Link to="/view-reservation" className="text-blue-600 underline">View / Update / Delete Reservations</Link>
-//       </div>
-//     </div>
-//   );
-// }
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyReservations } from "../Services/api";
@@ -150,9 +102,9 @@ export default function CustomerDashboard() {
               </h3>
               <p className="text-slate-600">Recent bookings and upcoming stays</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl text-white shadow-lg">
+            {/* <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl text-white shadow-lg">
               📅
-            </div>
+            </div> */}
           </div>
 
           {reservations.length === 0 ? (
@@ -212,7 +164,7 @@ export default function CustomerDashboard() {
                     </div>
                     
                     <Link
-                      to="/view-reservation"
+                      to={`/view-reservation/${resv.reservationNumber}`}
                       className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 text-center"
                     >
                       View Details

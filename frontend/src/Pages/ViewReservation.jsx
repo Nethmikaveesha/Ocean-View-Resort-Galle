@@ -1,166 +1,13 @@
-// import React, { useEffect, useState } from "react";
-// import { getMyReservations, getBill, updateReservation, deleteReservation } from "../Services/api";
 
-// const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
-
-// export default function ViewReservation() {
-//   const [reservations, setReservations] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-//   const [editing, setEditing] = useState(null);
-//   const [form, setForm] = useState({});
-
-//   const username = localStorage.getItem("username") || "";
-//   const today = new Date().toISOString().split("T")[0];
-
-//   const fetchReservations = async () => {
-//     try {
-//       const data = await getMyReservations(username);
-//       setReservations(data || []);
-//       setError("");
-//     } catch (err) {
-//       setError("Failed to load reservations");
-//       setReservations([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchReservations();
-//   }, [username]);
-
-//   const handleEdit = (r) => {
-//     setEditing(r.reservationNumber);
-//     setForm({
-//       guestName: r.guestName,
-//       address: r.address,
-//       contactNumber: r.contactNumber,
-//       roomType: r.roomType,
-//       roomId: r.roomId,
-//       checkIn: r.checkIn || r.checkInDate || today,
-//       checkOut: r.checkOut || r.checkOutDate || today,
-//       checkInTime: r.checkInTime || "12:00 PM",
-//       checkOutTime: r.checkOutTime || "11:00 AM",
-//     });
-//   };
-
-//   const handleUpdate = async () => {
-//     const resNumber = editing;
-//     try {
-//       await updateReservation(resNumber, form);
-//       setEditing(null);
-//       await fetchReservations();
-//       try {
-//         const blob = await getBill(resNumber);
-//         const url = window.URL.createObjectURL(blob);
-//         const a = document.createElement("a");
-//         a.href = url;
-//         a.download = `bill-${resNumber}-updated.pdf`;
-//         a.click();
-//         alert("Reservation updated. Bill recalculated and downloaded.");
-//       } catch (_) {
-//         alert("Reservation updated. You can download the updated bill using the button below.");
-//       }
-//     } catch (err) {
-//       alert("Failed to update: " + (err?.message || "Try again."));
-//     }
-//   };
-
-//   const handleDelete = async (id) => {
-//     if (!window.confirm("Are you sure you want to delete this reservation?")) return;
-//     try {
-//       await deleteReservation(id);
-//       alert("Reservation deleted.");
-//       fetchReservations();
-//     } catch (err) {
-//       alert("Failed to delete.");
-//     }
-//   };
-
-//   const handleDownloadBill = async (reservationNumber) => {
-//     try {
-//       const blob = await getBill(reservationNumber);
-//       const url = window.URL.createObjectURL(blob);
-//       const a = document.createElement("a");
-//       a.href = url;
-//       a.download = `bill-${reservationNumber}.pdf`;
-//       a.click();
-//     } catch (err) {
-//       alert("Failed to download bill.");
-//     }
-//   };
-
-//   if (loading) return <p className="p-6">Loading reservations...</p>;
-//   if (error) return <p className="p-6 text-red-600">{error}</p>;
-
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-2xl font-bold mb-4">My Reservations</h1>
-
-//       {reservations.length === 0 ? (
-//         <p>No reservations found.</p>
-//       ) : (
-//         <div className="grid gap-4">
-//           {reservations.map((res) => (
-//             <div key={res.reservationNumber} className="border rounded-lg p-4 shadow bg-white">
-//               {editing === res.reservationNumber ? (
-//                 <div className="space-y-2">
-//                   <input
-//                     className="border p-2 w-full rounded"
-//                     placeholder="Guest Name"
-//                     value={form.guestName}
-//                     onChange={(e) => setForm({ ...form, guestName: e.target.value })}
-//                   />
-//                   <input
-//                     className="border p-2 w-full rounded"
-//                     placeholder="Address"
-//                     value={form.address}
-//                     onChange={(e) => setForm({ ...form, address: e.target.value })}
-//                   />
-//                   <input
-//                     className="border p-2 w-full rounded"
-//                     placeholder="Contact"
-//                     value={form.contactNumber}
-//                     onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
-//                   />
-//                   {form.roomId && <input type="hidden" name="roomId" value={form.roomId} />}
-//                   <p className="text-sm text-gray-600">Room: {form.roomType} (ID: {form.roomId || "N/A"})</p>
-//                   <input type="date" value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value })} className="border p-2 w-full rounded" />
-//                   <input type="date" value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} className="border p-2 w-full rounded" />
-//                   <div className="flex gap-2 mt-2">
-//                     <button onClick={handleUpdate} className="bg-green-600 text-white px-4 py-1 rounded">Save (Bill will be recalculated)</button>
-//                     <button onClick={() => setEditing(null)} className="bg-gray-500 text-white px-4 py-1 rounded">Cancel</button>
-//                   </div>
-//                 </div>
-//               ) : (
-//                 <>
-//                   <p><strong>Reservation No:</strong> {res.reservationNumber}</p>
-//                   <p><strong>Guest Name:</strong> {res.guestName}</p>
-//                   <p><strong>Room Type:</strong> {res.roomType}</p>
-//                   <p><strong>Check-in:</strong> {res.checkIn || res.checkInDate} {res.checkInTime && `(${res.checkInTime})`}</p>
-//                   <p><strong>Check-out:</strong> {res.checkOut || res.checkOutDate} {res.checkOutTime && `(${res.checkOutTime})`}</p>
-//                   <p><strong>Total Bill:</strong> LKR {res.totalBill?.toLocaleString()}</p>
-//                   <div className="mt-3 flex flex-wrap gap-2">
-//                     <button onClick={() => handleDownloadBill(res.reservationNumber)} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Print / Download Bill</button>
-//                     <button onClick={() => handleEdit(res)} className="bg-amber-500 text-white px-3 py-1 rounded text-sm">Edit</button>
-//                     <button onClick={() => handleDelete(res.reservationNumber)} className="bg-red-600 text-white px-3 py-1 rounded text-sm">Delete</button>
-//                   </div>
-//                 </>
-//               )}
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
 import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { getMyReservations, getBill, updateReservation, deleteReservation } from "../Services/api";
+import toast from "react-hot-toast";
 
 const TIME_OPTIONS = ["12:00 AM", "6:00 AM", "9:00 AM", "12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"];
 
 export default function ViewReservation() {
+  const { reservationNumber: paramNumber } = useParams();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -169,6 +16,10 @@ export default function ViewReservation() {
 
   const username = localStorage.getItem("username") || "";
   const today = new Date().toISOString().split("T")[0];
+
+  const toShow = paramNumber
+    ? reservations.filter((r) => r.reservationNumber === paramNumber)
+    : reservations;
 
   const fetchReservations = async () => {
     try {
@@ -215,12 +66,12 @@ export default function ViewReservation() {
         a.href = url;
         a.download = `bill-${resNumber}-updated.pdf`;
         a.click();
-        alert("Reservation updated. Bill recalculated and downloaded.");
+        toast.success("Reservation updated. Bill recalculated and downloaded.");
       } catch (_) {
-        alert("Reservation updated. You can download the updated bill using the button below.");
+        toast.success("Reservation updated. You can download the updated bill using the button below.");
       }
     } catch (err) {
-      alert("Failed to update: " + (err?.message || "Try again."));
+      toast.error("Failed to update: " + (err?.message || "Try again."));
     }
   };
 
@@ -228,10 +79,10 @@ export default function ViewReservation() {
     if (!window.confirm("Are you sure you want to delete this reservation?")) return;
     try {
       await deleteReservation(id);
-      alert("Reservation deleted.");
+      toast.success("Reservation deleted.");
       fetchReservations();
     } catch (err) {
-      alert("Failed to delete.");
+      toast.error("Failed to delete.");
     }
   };
 
@@ -244,7 +95,7 @@ export default function ViewReservation() {
       a.download = `bill-${reservationNumber}.pdf`;
       a.click();
     } catch (err) {
-      alert("Failed to download bill.");
+      toast.error("Failed to download bill.");
     }
   };
 
@@ -294,9 +145,33 @@ export default function ViewReservation() {
             </h3>
             <p className="text-slate-600">You haven't made any reservations. Start booking your dream vacation!</p>
           </div>
+        ) : paramNumber && toShow.length === 0 ? (
+          <div className="bg-white/60 backdrop-blur-sm border-2 border-slate-200 rounded-3xl p-12 text-center shadow-lg animate-[fadeInUp_0.9s_ease-out]">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-serif text-slate-900 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              Reservation Not Found
+            </h3>
+            <p className="text-slate-600 mb-6">This reservation may have been cancelled or the link is invalid.</p>
+            <Link
+              to="/view-reservation"
+              className="inline-block px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
+            >
+              View All Reservations
+            </Link>
+          </div>
         ) : (
           <div className="grid gap-6 animate-[fadeInUp_0.9s_ease-out]">
-            {reservations.map((res, index) => (
+            {paramNumber && (
+              <div className="mb-4">
+                <Link
+                  to="/view-reservation"
+                  className="inline-flex items-center gap-2 text-cyan-600 hover:text-cyan-700 font-medium"
+                >
+                  ← Back to all reservations
+                </Link>
+              </div>
+            )}
+            {toShow.map((res, index) => (
               <div
                 key={res.reservationNumber}
                 className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300"
