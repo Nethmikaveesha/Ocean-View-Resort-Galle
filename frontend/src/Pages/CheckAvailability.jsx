@@ -408,7 +408,12 @@ export default function CheckAvailability() {
               No Rooms Available
             </h3>
             <p className="text-red-800 font-semibold mb-2">Unfortunately, no rooms are available for the selected dates.</p>
-            <p className="text-red-700">Please try different dates or contact us for assistance.</p>
+            <p className="text-red-700 mb-4">Please try different dates or contact us for assistance.</p>
+            {!isStaff && (
+              <p className="text-slate-600 text-sm">
+                You can still register or log in anytime using the menu above to manage your account and view reservations.
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -17,9 +17,6 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const hasAvailability = () =>
-    sessionStorage.getItem("availabilityVerified") && sessionStorage.getItem("selectedRoom");
-
   const handleLoginClick = (e) => {
     e.preventDefault();
     setMobileMenuOpen(false);
@@ -29,10 +26,6 @@ export default function Navbar() {
   const handleRegisterClick = (e) => {
     e.preventDefault();
     setMobileMenuOpen(false);
-    if (!hasAvailability()) {
-      navigate("/check", { state: { message: "Please check availability and select a room first." } });
-      return;
-    }
     navigate("/register");
   };
 
