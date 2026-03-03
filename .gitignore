@@ -13,3 +13,13 @@ Thumbs.db
 .env
 .env.local
 *.local
+
+# Build outputs
+backend/target/
+frontend/dist/
+hotel-reservation-automation/target/
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+e2e/node_modules/
